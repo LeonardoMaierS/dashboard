@@ -7,6 +7,7 @@ function generateInsights(selectedMonths, monthsData) {
   const first = monthsData[selectedMonths[0]];
   const last = monthsData[selectedMonths[selectedMonths.length - 1]];
   const variacao = ((last.conversao - first.conversao) / first.conversao) * 100;
+
   if (Math.abs(variacao) > 5) {
     insights.push({
       tipo: variacao > 0 ? 'positive' : 'negative',
