@@ -16,6 +16,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
   document.getElementById('password-btn').onclick = function () {
     const pass = `${document.getElementById('site-password').value}ecommer`;
+    console.log(pass)
     try {
       const str = window._monthsDataEncrypted;
       const decrypted = CryptoJS.AES.decrypt(str, pass).toString(CryptoJS.enc.Utf8);
