@@ -17,14 +17,15 @@ window.addEventListener('DOMContentLoaded', function () {
   document.getElementById('password-btn').onclick = function () {
     const pass = document.getElementById('site-password').value;
     try {
-      const str = window._monthsDataEncrypted
-      const decrypted = CryptoJS.AES.decrypt(str, pass).toString(crypto.enc.Utf8);
-
+      const str = window._monthsDataEncrypted;
+      const decrypted = CryptoJS.AES.decrypt(str, pass).toString(CryptoJS.enc.Utf8);
       window.monthsData = JSON.parse(decrypted);
       document.getElementById('password-modal').style.display = 'none';
 
-      // Você pode chamar aqui uma função para inicializar o dashboard
-      // startDashboard();
+      document.getElementById('dashboard-main').style.display = 'block';
+      initializeMonthSelector();
+      updateDashboard();
+      initializeModals();
     } catch (e) {
       console.log(e)
       document.getElementById('password-error').style.display = 'block';

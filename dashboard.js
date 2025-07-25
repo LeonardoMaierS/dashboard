@@ -4,17 +4,10 @@ let monthsBlocksRendered = [];
 
 document.addEventListener('DOMContentLoaded', function () {
   initializeMonthSelector();
-  updateDashboard();
   initializeModals();
+  updateDashboard();
 
-  const limitSelect = document.getElementById('itemLimit');
-  if (limitSelect) {
-    limitSelect.value = tableItemLimit;
-    limitSelect.addEventListener('change', function () {
-      tableItemLimit = parseInt(this.value);
-      updateDetailedTable();
-    });
-  }
+
 });
 
 function initializeMonthSelector() {
@@ -51,6 +44,15 @@ function updateDashboard() {
   const tableSection = document.getElementById('tableSection');
   const insightsSection = document.getElementById('insightsSection');
   const monthsBlocksContainer = document.getElementById('selected-months-blocks');
+
+  const limitSelect = document.getElementById('itemLimit');
+  if (limitSelect) {
+    limitSelect.value = tableItemLimit;
+    limitSelect.addEventListener('change', function () {
+      tableItemLimit = parseInt(this.value);
+      updateDetailedTable();
+    });
+  }
 
   if (monthsBlocksContainer) {
     monthsBlocksContainer.innerHTML = '';
@@ -175,6 +177,7 @@ function getCombinedTopTerms() {
 function updateDetailedTable() {
   const tableHead = document.getElementById('tableHead');
   const tableBody = document.getElementById('tableBody');
+
   let headerHTML = '<tr><th rowspan="2">Termo de Busca</th>';
   headerHTML += `<th colspan="${selectedMonths.length}">Buscas</th>`;
   headerHTML += `<th colspan="${selectedMonths.length}">Vendas</th>`;
@@ -191,38 +194,48 @@ function updateDetailedTable() {
   selectedMonths.forEach(month => {
     (monthsData[month].top50MaisPesquisados || []).forEach(item => allTerms.add(item.termo));
   });
+
   const uniqueTerms = Array.from(allTerms).slice(0, tableItemLimit);
+
   tableBody.innerHTML = '';
   uniqueTerms.forEach(termo => {
     let rowHTML = `<td><strong>${termo}</strong></td>`;
     const buscasValues = [], vendasValues = [], conversaoValues = [];
+
     selectedMonths.forEach(month => {
       const found = (monthsData[month].top50MaisPesquisados || []).find(t => t.termo === termo);
       rowHTML += found ? `<td>${found.buscas.toLocaleString()}</td>` : '<td>-</td>';
       buscasValues.push(found ? found.buscas : 0);
     });
+
     selectedMonths.forEach(month => {
       const found = (monthsData[month].top50MaisPesquisados || []).find(t => t.termo === termo);
-      rowHTML += found ? `<td>${found.vendas}</td>` : '<td>-</td>';
+      rowHTML += found ? `<td>${found.vendas.toLocaleString()}</td>` : '<td>-</td>';
       vendasValues.push(found ? found.vendas : 0);
     });
+
     selectedMonths.forEach(month => {
       const found = (monthsData[month].top50MaisPesquisados || []).find(t => t.termo === termo);
       rowHTML += found ? `<td>${found.conversao.toFixed(2)}%</td>` : '<td>-</td>';
       conversaoValues.push(found ? found.conversao : 0);
     });
+
     let trendIcon = '→', trendClass = 'neutral';
     if (buscasValues.length > 1) {
       const first = buscasValues[0], last = buscasValues[buscasValues.length - 1];
       if (last > first * 1.1) { trendIcon = '↗'; trendClass = 'positive'; }
       else if (last < first * 0.9) { trendIcon = '↘'; trendClass = 'negative'; }
     }
+
     rowHTML += `<td><span class="kpi-change ${trendClass}">${trendIcon}</span></td>`;
+
     const row = document.createElement('tr');
     row.innerHTML = rowHTML;
     tableBody.appendChild(row);
   });
 }
+
+
 
 function updateInsights() {
   const container = document.getElementById('insightsContainer');
