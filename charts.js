@@ -899,8 +899,6 @@ function renderPieDistribuicaoTop10BuscasSemResultado(monthId, month) {
   const termos = (month.top50SemResultado || []).slice(0, 10);
   const labels = termos.map(i => i.termo.length > 18 ? i.termo.slice(0, 16) + '...' : i.termo);
 
-  console.log(labels)
-
   const values = termos.map(i => i.buscas);
   monthlyChartInstances[chartId] = new Chart(canvas, {
     type: 'pie',

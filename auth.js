@@ -28,7 +28,6 @@ window.addEventListener('DOMContentLoaded', function () {
       updateDashboard();
       initializeModals();
     } catch (e) {
-      console.log(e)
       document.getElementById('password-error').style.display = 'block';
     }
   };
