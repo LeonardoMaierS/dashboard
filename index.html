@@ -8,6 +8,14 @@
   <link rel="stylesheet" href="style.css">
 </head>
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Analytics</title>
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+
 <body>
   <div class="container" id="dashboard-main" style="display: none;">
 
@@ -218,11 +226,38 @@
       </small>
     </div>
   </div>
+  <div class="info-modal" id="info-topconv">
+    <div class="info-content">
+      <strong>Top 10 Conversão (%)</strong>
+      <p>Exibe os termos com maior taxa de conversão do mês.</p>
+      <div class="info-formula">
+        Conversão (%) = (Pedidos / Buscas) × 100
+      </div>
+    </div>
+  </div>
+
+  <div class="info-modal" id="info-topvendas">
+    <div class="info-content">
+      <strong>Top 10 Vendas Absolutas</strong>
+      <p>Mostra os termos que mais geraram pedidos, em valor absoluto.</p>
+      <div class="info-formula">
+        Foco em volume total de vendas, não em taxa.
+      </div>
+    </div>
+  </div>
+
+  <div class="info-modal" id="info-evolconv">
+    <div class="info-content">
+      <strong>Evolução da Conversão Diária</strong>
+      <p>Mostra a conversão (%) ao longo dos dias do mês.</p>
+      <div class="info-formula">
+        Útil para identificar quedas, picos e tendências comerciais.
+      </div>
+    </div>
+  </div>
+
   <div class="tooltip" id="tooltip"></div>
 
-
-
-  <script src="monthsData.js"></script>
   <script src="monthsDataCrypto.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
   <script src="auth.js"></script>
