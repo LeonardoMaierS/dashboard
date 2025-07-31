@@ -1,11 +1,11 @@
-function generateInsights(selectedMonths, monthsData) {
+function generateInsights(selectedMonths, dataMonths) {
   let insights = [];
   if (selectedMonths.length < 2) {
     insights.push({ tipo: '', icon: '📊', title: 'Selecione mais meses', description: 'Compare pelo menos 2 meses para gerar insights.' });
     return insights;
   }
-  const first = monthsData[selectedMonths[0]];
-  const last = monthsData[selectedMonths[selectedMonths.length - 1]];
+  const first = dataMonths[selectedMonths[0]];
+  const last = dataMonths[selectedMonths[selectedMonths.length - 1]];
   const variacao = ((last.conversao - first.conversao) / first.conversao) * 100;
 
   if (Math.abs(variacao) > 5) {

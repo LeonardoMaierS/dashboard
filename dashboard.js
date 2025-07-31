@@ -1,6 +1,42 @@
-let tableItemLimit = 5;
-let selectedMonths = [];
-let monthsBlocksRendered = [];
+let tableItemLimit = 5
+let selectedMonths = []
+let monthsBlocksRendered = []
+
+function constructorObj() {
+  const year = window.definedYear
+  let monthsData = {}
+
+  MONTHS.forEach((month) => {
+    const dataMonth = {
+      [`${month}${year}`]: {
+        "name": month,
+        "year": year,
+        "available": false,
+      }
+    }
+
+    monthsData = { ...monthsData, ...dataMonth }
+  })
+
+  return monthsData
+}
+
+function getMonthData() {
+  // TODO - ajustar essa linha quando os dados forem atualizados - const monthObj = window.monthsData
+  const monthObj = { mobile: window.monthsData }
+
+  const platformSelectDiv = document?.getElementById('platformCustomSelect')
+  const platform = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
+
+  if (!monthObj || !platform) return;
+
+  if (platform === 'desktop e mobile') {
+    // TODO - fazer os calculos para todas as plataformas
+    return constructorObj()
+  } else {
+    return monthObj[platform] || constructorObj()
+  }
+}
 
 function generateTableHTML(headers, rows) {
   let html = '<table class="mini-data-table"><thead><tr>';
@@ -16,7 +52,7 @@ function generateTableHTML(headers, rows) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  if (!window.monthsData) return;
+  if (!getMonthData()) return;
 
   initializeMonthSelector();
   initializeModals();
@@ -26,31 +62,35 @@ document.addEventListener('DOMContentLoaded', function () {
 function initializeMonthSelector() {
   const timeline = document.getElementById('monthTimeline');
   timeline.innerHTML = '';
-  Object.keys(monthsData).forEach(monthKey => {
-    const month = monthsData[monthKey];
+
+  const dataMonths = getMonthData()
+
+  Object.keys(dataMonths).forEach(monthKey => {
+    const month = dataMonths[monthKey];
     const card = document.createElement('div');
     card.className = `month-card${!month.available ? ' disabled' : ''}${selectedMonths.includes(monthKey) ? ' selected' : ''}`;
     card.dataset.month = monthKey;
     card.innerHTML = `<div class="month-name">${month.name}</div><div class="month-year">${month.year}</div>`;
     if (month.available) {
       card.addEventListener('click', function () {
-        toggleMonth(monthKey);
+        toggleMonth(monthKey, dataMonths);
       });
     }
     timeline.appendChild(card);
   });
 }
 
-function toggleMonth(monthKey) {
+function toggleMonth(monthKey, dataMonths) {
   const idx = selectedMonths.indexOf(monthKey);
+
   if (idx > -1) {
     selectedMonths.splice(idx, 1);
   } else {
     selectedMonths.push(monthKey);
 
     selectedMonths.sort((a, b) => {
-      const ma = monthsData[a];
-      const mb = monthsData[b];
+      const ma = dataMonths[a];
+      const mb = dataMonths[b];
 
       if (ma.year !== mb.year) return ma.year - mb.year;
 
@@ -58,20 +98,23 @@ function toggleMonth(monthKey) {
         "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
       ];
+
       return ordemMeses.indexOf(ma.name) - ordemMeses.indexOf(mb.name);
     });
   }
   initializeMonthSelector();
+  initializeModals();
   updateDashboard();
 }
 
 function updateDashboard() {
+  const keyMetrics = document.getElementById('keyMetrics');
   const chartsSection = document.getElementById('chartsSection');
   const tableSection = document.getElementById('tableSection');
   const insightsSection = document.getElementById('insightsSection');
   const monthsBlocksContainer = document.getElementById('selected-months-blocks');
-
   const limitSelect = document.getElementById('itemLimit');
+
   if (limitSelect) {
     limitSelect.value = tableItemLimit;
     limitSelect.addEventListener('change', function () {
@@ -89,12 +132,15 @@ function updateDashboard() {
   }
 
   if (selectedMonths.length === 0) {
-    document.getElementById('kpiGrid').innerHTML = '<div style="text-align:center;color:#64748b;font-size:1.2em;margin:36px 0;">Selecione pelo menos um mês acima.</div>';
+    document.getElementById('kpiGrid').innerHTML = '<div style="text-align:center;color:#eaf7fb;font-size:1.2em;margin:15px 0;">Selecione pelo menos um mês acima.</div>';
+
+    if (keyMetrics) keyMetrics.style.display = 'none';
     if (chartsSection) chartsSection.style.display = 'none';
     if (tableSection) tableSection.style.display = 'none';
     if (insightsSection) insightsSection.style.display = 'none';
     return;
   }
+  if (keyMetrics) keyMetrics.style.display = '';
   if (chartsSection) chartsSection.style.display = '';
   if (tableSection) tableSection.style.display = '';
   if (insightsSection) insightsSection.style.display = '';
@@ -106,14 +152,18 @@ function updateDashboard() {
 }
 
 function updateKPIs() {
+  const dataMonths = getMonthData()
+
   const grid = document.getElementById('kpiGrid');
+
   grid.innerHTML = '';
+
   const kpis = [
-    { label: 'Total de Buscas', value: selectedMonths.reduce((a, m) => a + monthsData[m].totalBuscas, 0).toLocaleString() },
-    { label: 'Buscas com Resultado', value: selectedMonths.reduce((a, m) => a + monthsData[m].buscasComResultado, 0).toLocaleString() },
-    { label: 'Taxa de Conversão', value: (selectedMonths.reduce((a, m) => a + monthsData[m].conversao, 0) / selectedMonths.length).toFixed(2) + '%' },
-    { label: 'CTR Médio', value: (selectedMonths.reduce((a, m) => a + monthsData[m].ctr, 0) / selectedMonths.length).toFixed(1) + '%' },
-    { label: 'Ticket Médio', value: 'R$ ' + (selectedMonths.reduce((a, m) => a + monthsData[m].ticketMedio, 0) / selectedMonths.length).toFixed(2) },
+    { label: 'Total de Buscas', value: selectedMonths.reduce((a, m) => a + dataMonths[m].totalBuscas, 0).toLocaleString() },
+    { label: 'Buscas com Resultado', value: selectedMonths.reduce((a, m) => a + dataMonths[m].buscasComResultado, 0).toLocaleString() },
+    { label: 'Taxa de Conversão', value: (selectedMonths.reduce((a, m) => a + dataMonths[m].conversao, 0) / selectedMonths.length).toFixed(2) + '%' },
+    { label: 'CTR Médio', value: (selectedMonths.reduce((a, m) => a + dataMonths[m].ctr, 0) / selectedMonths.length).toFixed(1) + '%' },
+    { label: 'Ticket Médio', value: 'R$ ' + (selectedMonths.reduce((a, m) => a + dataMonths[m].ticketMedio, 0) / selectedMonths.length).toFixed(2) },
   ];
   kpis.forEach(kpi => {
     const card = document.createElement('div');
@@ -125,7 +175,9 @@ function updateKPIs() {
 }
 
 function updateMainCharts() {
-  // Atualiza a grade de gráficos principais com novos IDs padronizados
+  const dataMonths = getMonthData()
+
+  // Atualiza a grade de gráficos principais
   const grid = document.getElementById('mainChartsGrid');
   grid.innerHTML = `
     <div class="chart-container">
@@ -170,16 +222,16 @@ function updateMainCharts() {
     </div>
   `;
   // Chama as funções de renderização com as listas combinadas
-  const combined = getCombinedTopTerms();
+  const combined = getCombinedTopTerms(dataMonths);
   const labelsTop = combined.map(item => item.termo);
   const valuesTop = combined.map(item => item.buscas);
   renderBarTop10TermosBuscados(labelsTop, valuesTop);
   renderPieProporcaoTop10Buscas(labelsTop, valuesTop);
-  const monthNames = selectedMonths.map(m => monthsData[m].name);
-  const convValues = selectedMonths.map(m => monthsData[m].conversao);
+  const monthNames = selectedMonths.map(m => dataMonths[m].name);
+  const convValues = selectedMonths.map(m => dataMonths[m].conversao);
   renderBarTaxaConversao(monthNames, convValues);
-  const totalValues = selectedMonths.map(m => monthsData[m].totalBuscas);
-  const comResultadoValues = selectedMonths.map(m => monthsData[m].buscasComResultado);
+  const totalValues = selectedMonths.map(m => dataMonths[m].totalBuscas);
+  const comResultadoValues = selectedMonths.map(m => dataMonths[m].buscasComResultado);
   renderLineEvolucaoBuscas(monthNames, totalValues, comResultadoValues);
 
   // Gera tabelas de dados para cada gráfico principal
@@ -205,7 +257,7 @@ function updateMainCharts() {
   const tableConvEl = document.getElementById('table-chartTaxaConversao');
   if (tableConvEl) {
     const rows = selectedMonths.map((monthKey) => {
-      const m = monthsData[monthKey];
+      const m = dataMonths[monthKey];
       return [m.name, m.conversao.toFixed(2) + '%'];
     });
     tableConvEl.innerHTML = generateTableHTML(['Mês', 'Conversão (%)'], rows);
@@ -215,7 +267,7 @@ function updateMainCharts() {
   const tableEvolEl = document.getElementById('table-chartEvolucaoBuscas');
   if (tableEvolEl) {
     const rows = selectedMonths.map((monthKey) => {
-      const m = monthsData[monthKey];
+      const m = dataMonths[monthKey];
       const semRes = m.totalBuscas - m.buscasComResultado;
       return [m.name, m.totalBuscas.toLocaleString(), m.buscasComResultado.toLocaleString(), semRes.toLocaleString()];
     });
@@ -225,10 +277,10 @@ function updateMainCharts() {
   initializeModals();
 }
 
-function getCombinedTopTerms() {
+function getCombinedTopTerms(dataMonths) {
   const termoMap = {};
   selectedMonths.forEach(monthKey => {
-    const arr = monthsData[monthKey].top50MaisPesquisados || [];
+    const arr = dataMonths[monthKey].top50MaisPesquisados || [];
     arr.forEach(item => {
       if (!termoMap[item.termo]) {
         termoMap[item.termo] = { ...item };
@@ -242,6 +294,7 @@ function getCombinedTopTerms() {
 }
 
 function updateDetailedTable() {
+  const dataMonths = getMonthData()
   const tableHead = document.getElementById('tableHead');
   const tableBody = document.getElementById('tableBody');
 
@@ -251,15 +304,15 @@ function updateDetailedTable() {
   headerHTML += `<th colspan="${selectedMonths.length}">Conversão (%)</th>`;
   headerHTML += '<th rowspan="2">Tendência</th></tr>';
   headerHTML += '<tr>';
-  selectedMonths.forEach(month => headerHTML += `<th>${monthsData[month].name}</th>`);
-  selectedMonths.forEach(month => headerHTML += `<th>${monthsData[month].name}</th>`);
-  selectedMonths.forEach(month => headerHTML += `<th>${monthsData[month].name}</th>`);
+  selectedMonths.forEach(month => headerHTML += `<th>${dataMonths[month].name}</th>`);
+  selectedMonths.forEach(month => headerHTML += `<th>${dataMonths[month].name}</th>`);
+  selectedMonths.forEach(month => headerHTML += `<th>${dataMonths[month].name}</th>`);
   headerHTML += '</tr>';
   tableHead.innerHTML = headerHTML;
 
   const allTerms = new Set();
   selectedMonths.forEach(month => {
-    (monthsData[month].top50MaisPesquisados || []).forEach(item => allTerms.add(item.termo));
+    (dataMonths[month].top50MaisPesquisados || []).forEach(item => allTerms.add(item.termo));
   });
 
   const uniqueTerms = Array.from(allTerms).slice(0, tableItemLimit);
@@ -270,19 +323,19 @@ function updateDetailedTable() {
     const buscasValues = [], vendasValues = [], conversaoValues = [];
 
     selectedMonths.forEach(month => {
-      const found = (monthsData[month].top50MaisPesquisados || []).find(t => t.termo === termo);
+      const found = (dataMonths[month].top50MaisPesquisados || []).find(t => t.termo === termo);
       rowHTML += found ? `<td>${found.buscas.toLocaleString()}</td>` : '<td>-</td>';
       buscasValues.push(found ? found.buscas : 0);
     });
 
     selectedMonths.forEach(month => {
-      const found = (monthsData[month].top50MaisPesquisados || []).find(t => t.termo === termo);
+      const found = (dataMonths[month].top50MaisPesquisados || []).find(t => t.termo === termo);
       rowHTML += found ? `<td>${found.vendas.toLocaleString()}</td>` : '<td>-</td>';
       vendasValues.push(found ? found.vendas : 0);
     });
 
     selectedMonths.forEach(month => {
-      const found = (monthsData[month].top50MaisPesquisados || []).find(t => t.termo === termo);
+      const found = (dataMonths[month].top50MaisPesquisados || []).find(t => t.termo === termo);
       rowHTML += found ? `<td>${found.conversao.toFixed(2)}%</td>` : '<td>-</td>';
       conversaoValues.push(found ? found.conversao : 0);
     });
@@ -303,9 +356,10 @@ function updateDetailedTable() {
 }
 
 function updateInsights() {
+  const dataMonths = getMonthData()
   const container = document.getElementById('insightsContainer');
   container.innerHTML = '';
-  const insights = generateInsights(selectedMonths, monthsData);
+  const insights = generateInsights(selectedMonths, dataMonths);
   insights.forEach(insight => {
     const card = document.createElement('div');
     card.className = `insight-card ${insight.tipo || ''}`;
@@ -362,10 +416,12 @@ function initializeModals() {
 }
 
 function addSelectedMonthBlock(monthKey) {
+  const dataMonths = getMonthData()
+
   if (monthsBlocksRendered.includes(monthKey)) return;
   monthsBlocksRendered.push(monthKey);
 
-  const month = monthsData[monthKey];
+  const month = dataMonths[monthKey];
   if (!month) return;
   const uniqueId = monthKey;
   const container = document.getElementById('selected-months-blocks');
@@ -672,7 +728,7 @@ function addSelectedMonthBlock(monthKey) {
       <div class="info-content">
         <strong>Distribuição das Top 10 Buscas com Resultado</strong>
         <p>
-          Visualiza a participação de cada termo mais buscado entre todos que retornaram resultado.
+          Visualiza a participação de cada termo mais buscado entre o total dos que retornaram resultado.
         </p>
         <div class="dica">
           <b>Orientação:</b> Identifique termos dominantes ou concentração excessiva de buscas em poucos produtos.
@@ -839,7 +895,10 @@ function addSelectedMonthBlock(monthKey) {
 }
 
 function renderMonthBlockCharts(monthKey, uniqueId) {
-  const month = monthsData[monthKey];
+  const dataMonths = getMonthData()
+
+  const month = dataMonths[monthKey];
+
   if (!month) return;
 
   const proporcaoLabels = ["Com Resultado", "Sem Resultado"];
@@ -1030,3 +1089,47 @@ function renderMonthBlockCharts(monthKey, uniqueId) {
   </table>
   `;
 }
+
+document.querySelectorAll('.custom-select').forEach((select) => {
+  const valueSpan = select.querySelector('.custom-select-value')
+  const options = select.querySelectorAll('.custom-select-option')
+
+  select.addEventListener('click', function () {
+    select.classList.toggle('open')
+  });
+
+  options.forEach(function (option) {
+    option.addEventListener('click', function (e) {
+      e.stopPropagation()
+      options.forEach(o => o.classList.remove('selected'))
+      option.classList.add('selected')
+      valueSpan.textContent = option.textContent
+      select.classList.remove('open')
+
+      if (select.id === 'yearCustomSelect') {
+        window.definedYear = option.getAttribute('data-value')
+        loadYearDataEncrypted(window.definedYear)
+
+        selectedMonths = []
+        initializeMonthSelector()
+        updateDashboard()
+        initializeModals()
+      }
+      if (select.id === 'platformCustomSelect') {
+        document.getElementById('selected-months-blocks').innerHTML = ''
+
+        selectedMonths = []
+        initializeMonthSelector()
+        updateDashboard()
+        initializeModals()
+      }
+    });
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!select.contains(e.target)) {
+      select.classList.remove('open')
+    }
+  });
+});
+

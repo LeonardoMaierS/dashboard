@@ -67,7 +67,7 @@ function canvasExists(id) {
 
 /**
  * Renderiza um gráfico de barras horizontal com os 10 termos mais buscados
- * considerando todos os meses selecionados. Substitui qualquer instância
+ * considerando os meses selecionados. Substitui qualquer instância
  * existente utilizando o mesmo ID.
  */
 function renderBarTop10TermosBuscados(labels, values) {

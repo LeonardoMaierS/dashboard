@@ -50,7 +50,7 @@ body {
   font-size: 2.2rem;
   font-weight: 800;
   letter-spacing: -0.04em;
-  margin-bottom: 4px;
+  margin-bottom: 5px;
   text-align: center;
   color: var(--text-primary);
 }
@@ -59,7 +59,6 @@ body {
   text-align: center;
   font-size: 1rem;
   opacity: 0.92;
-  margin-bottom: 20px;
   color: var(--text-secondary);
 }
 
@@ -67,6 +66,7 @@ body {
   display: flex;
   justify-content: center;
   margin-bottom: 28px;
+  margin-top: 10px;
 }
 
 .month-timeline {
@@ -1196,6 +1196,210 @@ canvas {
 .pizza-half {
   flex: 1 1 0px;
   max-width: 100%;
+}
+
+.year-select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-year-select {
+  text-align: center;
+  text-align-last: center;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--brand);
+  color: var(--text-secondary);
+  border-radius: 10px;
+  border: 1px solid var(--brand);
+  font-size: 1.2em;
+  padding: 5px 16px 0px 34px;
+  background-image: none !important;
+}
+
+.custom-year-select:focus {
+  border: 1px solid var(--brand);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--brand);
+}
+
+.custom-year-select::-ms-expand {
+  display: none;
+}
+
+.year-select-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 65%;
+  left: 18px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-color: #eaf7fb transparent transparent transparent;
+  pointer-events: none;
+}
+
+.custom-select-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.custom-select {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--text-secondary);
+  padding: 0px 36px 0px 18px;
+  font-size: 1.2em;
+  cursor: pointer;
+  position: relative;
+  min-width: 110px;
+  width: 100%;
+  user-select: none;
+  transition: border-color 0.16s;
+}
+
+.custom-select:focus,
+.custom-select.open {
+  outline: none;
+}
+
+.custom-select-value {
+  text-align: center;
+  flex: 0 1 auto;
+}
+
+.custom-select-arrow {
+  margin-left: -70px;
+  position: absolute;
+}
+
+.custom-select-arrow svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.custom-select-arroww {
+  margin-left: -85px;
+  position: absolute;
+}
+
+.custom-select-arroww svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.custom-select-list {
+  display: none;
+  position: absolute;
+  left: 49%;
+  top: 90%;
+  background: #14323a;
+  border: 1.5px solid #1e4149;
+  border-radius: 11px;
+  box-shadow: 0 6px 32px #00151c33;
+  z-index: 2000;
+  overflow-y: auto;
+  transition: box-shadow 0.2s;
+  text-align: center;
+  transform: translateX(-50%);
+  width: 100px;
+}
+
+.custom-select.open .custom-select-list {
+  display: block;
+}
+
+.custom-select-option {
+  padding: 8px 22px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.8em;
+  text-align: center;
+  transition: background 0.13s, color 0.13s;
+}
+
+.custom-select-option:hover,
+.custom-select-option.selected {
+  background: #205278;
+  color: var(--text-secondary);
+}
+
+.custom-select-option[data-disabled="true"] {
+  color: #aaa;
+  background: #1e4149;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.custom-platform-select {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  padding: 0px 36px 0px 18px;
+  font-size: 1.2em;
+  cursor: pointer;
+  position: relative;
+  min-width: 110px;
+  width: 100%;
+  user-select: none;
+  transition: border-color 0.16s;
+}
+
+.custom-platform-select .custom-select-value {
+  text-align: center;
+  flex: 0 1 auto;
+}
+
+.custom-platform-select .custom-select-list {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  width: 165px;
+  background: #14323a;
+  border: 1.5px solid #1e4149;
+  border-radius: 11px;
+  box-shadow: 0 6px 32px #00151c33;
+  z-index: 2000;
+  overflow-y: auto;
+  transition: box-shadow 0.2s;
+  text-align: center;
+}
+
+.custom-platform-select.open .custom-select-list {
+  display: block;
+}
+
+.custom-platform-select .custom-select-option {
+  padding: 10px 22px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.8em;
+  text-align: center;
+  transition: background 0.13s, color 0.13s;
+}
+
+.custom-platform-select .custom-select-option:hover,
+.custom-platform-select .custom-select-option.selected {
+  background: #205278;
+  color: var(--text-secondary);
+}
+
+.custom-platform-select .custom-select-option[data-disabled="true"] {
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 @media (max-width: 1300px) {
