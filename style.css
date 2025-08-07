@@ -362,6 +362,7 @@ body {
 }
 
 .chart-container {
+  display: grid;
   background: var(--brand-dark);
   border: 1.5px solid var(--surface);
   border-radius: 14px;
@@ -962,11 +963,11 @@ canvas {
   text-decoration: underline;
 }
 
-.versao-dash {
-  margin-left: 13px;
-  color: #90adc6;
-  font-size: 12px;
-  font-weight: 600;
+.versao-dash,
+.ultima-atualizacao {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-left: 16px;
 }
 
 .month-pie-card .section-title,
@@ -1285,7 +1286,7 @@ canvas {
 }
 
 .custom-select-arroww {
-  margin-left: -85px;
+  margin-left: -20px;
   position: absolute;
 }
 
@@ -1293,6 +1294,11 @@ canvas {
   width: 16px;
   height: 16px;
   display: block;
+}
+
+.custom-select-list-up {
+  display: flex;
+  align-items: center;
 }
 
 .custom-select-list {

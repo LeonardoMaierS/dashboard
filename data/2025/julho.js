@@ -1,0 +1,1 @@
+window._Julho2025Encrypted = `U2FsdGVkX1/fbj6hb6bPRjsO6SB1xzaLwtA9zTAVTx8=`

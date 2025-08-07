@@ -1,0 +1,1 @@
+window._Outubro2025Encrypted = `U2FsdGVkX18TWnNoOgoEUqCvJc/4AO0mrPVQZAE+hDM=`

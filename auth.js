@@ -1,10 +1,12 @@
 window.addEventListener('DOMContentLoaded', function () {
+  const dataMonths = getMonthData();
+
   if (window.monthsData && typeof window.monthsData === "object") {
     document.getElementById('password-modal').style.display = 'none'
     document.getElementById('dashboard-main').style.display = 'block'
 
-    initializeMonthSelector()
-    updateDashboard()
+    initializeMonthSelector(dataMonths);
+    updateDashboard(dataMonths)
     initializeModals()
 
     return;
@@ -31,8 +33,8 @@ window.addEventListener('DOMContentLoaded', function () {
       document.getElementById('password-modal').style.display = 'none';
       document.getElementById('dashboard-main').style.display = 'block';
 
-      initializeMonthSelector();
-      updateDashboard();
+      initializeMonthSelector(dataMonths);
+      updateDashboard(dataMonths);
       initializeModals();
     } catch (e) {
       document.getElementById('password-error').style.display = 'block';

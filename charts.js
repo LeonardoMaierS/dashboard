@@ -18,11 +18,8 @@ const CHART_COLORS = [
 // Cor padrão de borda utilizada nos gráficos
 const BORDER_COLOR = COLORS.textPrimary;
 
-/**
- * Converte uma cor hexadecimal para uma string RGBA com opacidade.
- * Esta utilidade facilita a criação de cores translúcidas para backgrounds e gradientes, mantendo o padrão institucional.
- * A função remove o símbolo '#' se presente, converte o valor para números RGB e aplica a opacidade fornecida.
- */
+// Converte uma cor hexadecimal para uma string RGBA com opacidade.
+// Esta utilidade facilita a criação de cores translúcidas para backgrounds e gradientes, mantendo o padrão institucional.
 function hexToRgba(hex, alpha) {
   const cleanHex = hex.replace('#', '');
   const bigint = parseInt(cleanHex, 16);
@@ -35,7 +32,7 @@ function hexToRgba(hex, alpha) {
 const ticks = {
   color: COLORS.textSecondary,
   font: { size: window.innerWidth < 600 ? 10 : 13 }
-};
+}
 
 const scales = {
   x: {
@@ -57,19 +54,14 @@ let chartLineEvolucaoBuscas
 
 const monthlyChartInstances = {};
 
-/**
- * Verifica se um canvas existe e está visível no documento.
- */
+// Verifica se um canvas existe e está visível no documento.
 function canvasExists(id) {
   const el = document.getElementById(id);
   return el?.offsetParent !== null;
 }
 
-/**
- * Renderiza um gráfico de barras horizontal com os 10 termos mais buscados
- * considerando os meses selecionados. Substitui qualquer instância
- * existente utilizando o mesmo ID.
- */
+// Renderiza um gráfico de barras horizontal com os 10 termos mais buscados considerando os meses selecionados.
+// Substitui qualquer instância existente utilizando o mesmo ID.
 function renderBarTop10TermosBuscados(labels, values) {
   const canvasId = 'chartTop10TermosBuscados';
 
@@ -136,9 +128,7 @@ function renderBarTop10TermosBuscados(labels, values) {
   });
 }
 
-/**
- * Renderiza um gráfico de pizza com a proporção das buscas dos 10 termos mais populares entre os meses selecionados.
- */
+// Renderiza um gráfico de pizza com a proporção das buscas dos 10 termos mais populares entre os meses selecionados.
 function renderPieProporcaoTop10Buscas(labels, values) {
   const canvasId = 'chartProporcaoTop10Buscas';
 
@@ -183,10 +173,8 @@ function renderPieProporcaoTop10Buscas(labels, values) {
   });
 }
 
-/**
- * Renderiza um gráfico de barras horizontal para a taxa de conversão de cada
- * mês selecionado. Os valores são esperados em porcentagem (0-100).
- */
+// Renderiza um gráfico de barras horizontal para a taxa de conversão de cada
+// mês selecionado. Os valores são esperados em porcentagem (0-100).
 function renderBarTaxaConversao(labels, conversao) {
   const canvasId = 'chartTaxaConversao';
 
@@ -243,10 +231,8 @@ function renderBarTaxaConversao(labels, conversao) {
   });
 }
 
-/**
- * Renderiza um gráfico de linhas com três séries: total de buscas, buscas com
- * resultado e buscas sem resultado. Mostra a evolução mensal para cada mês selecionado.
- */
+// Renderiza um gráfico de linhas com três séries: total de buscas, buscas com
+// resultado e buscas sem resultado. Mostra a evolução mensal para cada mês selecionado.
 function renderLineEvolucaoBuscas(labels, totalBuscas, buscasComResultado) {
   const canvasId = 'chartEvolucaoBuscas';
   if (!canvasExists(canvasId)) return;
@@ -360,16 +346,8 @@ function renderLineEvolucaoBuscas(labels, totalBuscas, buscasComResultado) {
   });
 }
 
-// ============================================================================
-// GRÁFICOS MENSAIS – UTILIZADOS DENTRO DE CADA BLOCO DE MÊS
-// Cada função abaixo recebe o id do mês (monthId) e o objeto de dados (month)
-// para renderizar um gráfico específico dentro do bloco daquele mês.
-// ============================================================================
-
-/**
- * Destrói um gráfico existente em monthlyChartInstances (se houver) antes de
- * criar um novo. Ajuda a evitar vazamentos de memória do Chart.js.
- */
+// Destrói um gráfico existente em monthlyChartInstances (se houver) antes de criar um novo.
+// Ajuda a evitar vazamentos de memória do Chart.js.
 function destroyMonthlyChart(chartId) {
   if (monthlyChartInstances[chartId]) {
     monthlyChartInstances[chartId].destroy();
@@ -377,16 +355,19 @@ function destroyMonthlyChart(chartId) {
   }
 }
 
-/**
- * Renderiza o gráfico de pizza com a proporção geral de buscas com e sem resultado para um mês específico.
- */
+// Renderiza o gráfico de pizza com a proporção geral de buscas com e sem resultado para um mês específico.
 function renderPieProporcaoBuscas(monthId, month) {
   const chartId = `pieProporcaoBuscas-${monthId}`;
   const canvas = document.getElementById(chartId);
+
   if (!canvas) return;
+
   destroyMonthlyChart(chartId);
+
   const labels = ['Com Resultado', 'Sem Resultado'];
+
   const data = [month.buscasComResultado, month.buscasSemResultado];
+
   monthlyChartInstances[chartId] = new Chart(canvas, {
     type: 'pie',
     data: {
@@ -416,25 +397,24 @@ function renderPieProporcaoBuscas(monthId, month) {
   });
 }
 
-/**
- * Renderiza a evolução diária de buscas com resultado (gráfico de linha) para um mês.
- * @param {string} monthId
- * @param {Object} month
- */
+// Renderiza a evolução diária de buscas com resultado (gráfico de linha) para um mês.
 function renderLineEvolucaoBuscasComResultado(monthId, month) {
   const chartId = `lineEvolucaoBuscasComResultado-${monthId}`;
   const canvas = document.getElementById(chartId);
-  if (!canvas) return;
-  destroyMonthlyChart(chartId);
-  const daily = month.resumoDiario || [];
-  const labels = daily.map(d => {
-    const [year, month, day] = d.data.split("-");
-    return `${day}/${month}/${year}`;
-  });
-  const values = daily.map(d => d.buscasComResultado);
 
-  labels.reverse();
-  values.reverse();
+  if (!canvas) return;
+
+  destroyMonthlyChart(chartId);
+
+  const labels = []
+
+  for (const dia in month.historicoDiario) {
+    const [year, month, day] = dia.split("-");
+    labels.push(`${day}/${month}/${year}`)
+  }
+
+  const dias = Object.keys(month.historicoDiario).sort();
+  const values = dias.map(dia => month.historicoDiario[dia].resumoDiario.buscasComResultado);
 
   const ctx = canvas.getContext('2d');
   const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -476,23 +456,24 @@ function renderLineEvolucaoBuscasComResultado(monthId, month) {
   });
 }
 
-/**
- * Renderiza a evolução diária de buscas sem resultado (gráfico de linha) para um mês.
- */
+// Renderiza a evolução diária de buscas sem resultado (gráfico de linha) para um mês.
 function renderLineEvolucaoBuscasSemResultado(monthId, month) {
   const chartId = `lineEvolucaoBuscasSemResultado-${monthId}`;
   const canvas = document.getElementById(chartId);
-  if (!canvas) return;
-  destroyMonthlyChart(chartId);
-  const daily = month.resumoDiario || [];
-  const labels = daily.map(d => {
-    const [year, month, day] = d.data.split("-");
-    return `${day}/${month}/${year}`;
-  });
-  const values = daily.map(d => d.buscasSemResultado);
 
-  labels.reverse();
-  values.reverse();
+  if (!canvas) return;
+
+  destroyMonthlyChart(chartId);
+
+  const labels = []
+
+  for (const dia in month.historicoDiario) {
+    const [year, month, day] = dia.split("-");
+    labels.push(`${day}/${month}/${year}`)
+  }
+
+  const dias = Object.keys(month.historicoDiario).sort();
+  const values = dias.map(dia => month.historicoDiario[dia].resumoDiario.buscasSemResultado);
 
   const ctx = canvas.getContext('2d');
   const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -534,23 +515,24 @@ function renderLineEvolucaoBuscasSemResultado(monthId, month) {
   });
 }
 
-/**
- * Renderiza a evolução diária do CTR (%) em um mês específico (gráfico de linha).
- */
+// Renderiza a evolução diária do CTR (%) em um mês específico (gráfico de linha).
 function renderLineEvolucaoCTR(monthId, month) {
   const chartId = `lineEvolucaoCTR-${monthId}`;
   const canvas = document.getElementById(chartId);
-  if (!canvas) return;
-  destroyMonthlyChart(chartId);
-  const daily = month.resumoDiario || [];
-  const labels = daily.map(d => {
-    const [year, month, day] = d.data.split("-");
-    return `${day}/${month}/${year}`;
-  });
-  const values = daily.map(d => d.ctr);
 
-  labels.reverse();
-  values.reverse();
+  if (!canvas) return;
+
+  destroyMonthlyChart(chartId);
+
+  const labels = []
+
+  for (const dia in month.historicoDiario) {
+    const [year, month, day] = dia.split("-");
+    labels.push(`${day}/${month}/${year}`)
+  }
+
+  const dias = Object.keys(month.historicoDiario).sort();
+  const values = dias.map(dia => month.historicoDiario[dia].resumoDiario.ctr);
 
   const ctx = canvas.getContext('2d');
   const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -592,19 +574,36 @@ function renderLineEvolucaoCTR(monthId, month) {
   });
 }
 
-/**
- * Renderiza um gráfico de barras horizontal com os 10 termos com resultado mais buscados em um mês.
- */
+// Renderiza um gráfico de barras horizontal com os 10 termos com resultado mais buscados em um mês.
 function renderBarTop10BuscasComResultado(monthId, month) {
   const chartId = `barTop10BuscasComResultado-${monthId}`;
   const canvas = document.getElementById(chartId);
+
   if (!canvas) return;
 
   destroyMonthlyChart(chartId);
 
-  const termos = (month.top50MaisPesquisados || []).slice(0, 10);
-  const labels = termos.map(t => t.termo);
-  const values = termos.map(t => t.buscas);
+  const termos = [];
+
+  for (const dia in month.historicoDiario) {
+    const termosDia = month.historicoDiario[dia].termosComResultado || [];
+    termos.push(...termosDia);
+  }
+
+  // Agrupar e somar buscas por termo
+  const agregados = {};
+  termos.forEach(({ termo, buscas }) => {
+    agregados[termo] = (agregados[termo] || 0) + buscas;
+  });
+
+  // Converter para array, ordenar e pegar top 10
+  const top10 = Object.entries(agregados)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([termo, buscas]) => ({ termo, buscas }));
+
+  const labels = top10.map(t => t.termo);
+  const values = top10.map(t => t.buscas);
 
   monthlyChartInstances[chartId] = new Chart(canvas, {
     type: 'bar',
@@ -664,9 +663,7 @@ function renderBarTop10BuscasComResultado(monthId, month) {
   });
 }
 
-/**
- * Renderiza um gráfico de barras horizontal com os 10 termos sem resultado mais buscados em um mês.
- */
+// Renderiza um gráfico de barras horizontal com os 10 termos sem resultado mais buscados em um mês.
 function renderBarTop10BuscasSemResultado(monthId, month) {
   const chartId = `barTop10BuscasSemResultado-${monthId}`;
   const canvas = document.getElementById(chartId);
@@ -674,9 +671,27 @@ function renderBarTop10BuscasSemResultado(monthId, month) {
 
   destroyMonthlyChart(chartId);
 
-  const termos = (month.top50SemResultado || []).slice(0, 10);
-  const labels = termos.map(t => t.termo);
-  const values = termos.map(t => t.buscas);
+  const termos = [];
+
+  for (const dia in month.historicoDiario) {
+    const termosDia = month.historicoDiario[dia].termosSemResultado || [];
+    termos.push(...termosDia);
+  }
+
+  // Agrupar e somar buscas por termo
+  const agregados = {};
+  termos.forEach(({ termo, buscas }) => {
+    agregados[termo] = (agregados[termo] || 0) + buscas;
+  });
+
+  // Converter para array, ordenar e pegar top 10
+  const top10 = Object.entries(agregados)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([termo, buscas]) => ({ termo, buscas }));
+
+  const labels = top10.map(t => t.termo);
+  const values = top10.map(t => t.buscas);
 
   monthlyChartInstances[chartId] = new Chart(canvas, {
     type: 'bar',
@@ -736,9 +751,7 @@ function renderBarTop10BuscasSemResultado(monthId, month) {
   });
 }
 
-/**
- * Renderiza um gráfico de barras horizontal com termos que tiveram resultado mas não geraram vendas.
- */
+// Renderiza um gráfico de barras horizontal com termos que tiveram resultado mas não geraram vendas.
 function renderBarBuscasComResultadoSemVendas(monthId, month) {
   const chartId = `barBuscasComResultadoSemVendas-${monthId}`;
   const canvas = document.getElementById(chartId);
@@ -746,9 +759,34 @@ function renderBarBuscasComResultadoSemVendas(monthId, month) {
 
   destroyMonthlyChart(chartId);
 
-  const termos = (month.top50SemVenda || []).slice(0, 10);
-  const labels = termos.map(t => t.termo);
-  const values = termos.map(t => t.buscas);
+  // Agrupar e somar buscas por termo
+  const agregados = {};
+
+  // Percorre os dias e registra buscas e se teve venda
+  for (const dia in month.historicoDiario) {
+    const termosDia = month.historicoDiario[dia].termosComResultado || [];
+
+    termosDia.forEach(({ termo, buscas, vendas }) => {
+      if (!agregados[termo]) {
+        agregados[termo] = { buscas: 0, teveVenda: false };
+      }
+
+      agregados[termo].buscas += buscas;
+      if (vendas > 0) {
+        agregados[termo].teveVenda = true;
+      }
+    });
+  }
+
+  // Filtra os termos que nunca tiveram venda e ordena por buscas
+  const top10 = Object.entries(agregados)
+    .filter(([, data]) => !data.teveVenda)
+    .sort((a, b) => b[1].buscas - a[1].buscas)
+    .slice(0, 10)
+    .map(([termo, data]) => ({ termo, buscas: data.buscas }));
+
+  const labels = top10.map(t => t.termo);
+  const values = top10.map(t => t.buscas);
 
   monthlyChartInstances[chartId] = new Chart(canvas, {
     type: 'bar',
@@ -808,17 +846,37 @@ function renderBarBuscasComResultadoSemVendas(monthId, month) {
   });
 }
 
-/**
- * Renderiza um gráfico de pizza com a distribuição das 10 principais buscas com resultado.
- */
+// Renderiza um gráfico de pizza com a distribuição das 10 principais buscas com resultado.
 function renderPieDistribuicaoTop10BuscasComResultado(monthId, month) {
   const chartId = `pieDistribuicaoTop10BuscasComResultado-${monthId}`;
   const canvas = document.getElementById(chartId);
+
   if (!canvas) return;
+
   destroyMonthlyChart(chartId);
-  const termos = (month.top50MaisPesquisados || []).slice(0, 10);
-  const labels = termos.map(i => i.termo);
-  const values = termos.map(i => i.buscas);
+
+  const termos = [];
+
+  for (const dia in month.historicoDiario) {
+    const termosDia = month.historicoDiario[dia].termosComResultado || [];
+    termos.push(...termosDia);
+  }
+
+  // Agrupar e somar buscas por termo
+  const agregados = {};
+  termos.forEach(({ termo, buscas }) => {
+    agregados[termo] = (agregados[termo] || 0) + buscas;
+  });
+
+  // Converter para array, ordenar e pegar top 10
+  const top10 = Object.entries(agregados)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([termo, buscas]) => ({ termo, buscas }));
+
+  const labels = top10.map(t => t.termo);
+  const values = top10.map(t => t.buscas);
+
   monthlyChartInstances[chartId] = new Chart(canvas, {
     type: 'pie',
     data: {
@@ -848,17 +906,44 @@ function renderPieDistribuicaoTop10BuscasComResultado(monthId, month) {
   });
 }
 
-/**
- * Renderiza um gráfico de pizza com a distribuição das 10 principais buscas sem vendas.
- */
+// Renderiza um gráfico de pizza com a distribuição das 10 principais buscas sem vendas.
 function renderPieDistribuicaoTop10BuscasSemVendas(monthId, month) {
   const chartId = `pieDistribuicaoTop10BuscasSemVendas-${monthId}`;
   const canvas = document.getElementById(chartId);
+
   if (!canvas) return;
+
   destroyMonthlyChart(chartId);
-  const termos = (month.top50SemVenda || []).slice(0, 10);
-  const labels = termos.map(i => i.termo);
-  const values = termos.map(i => i.buscas);
+
+  // Agrupar e somar buscas por termo
+  const agregados = {};
+
+  // Percorre os dias e registra buscas e se teve venda
+  for (const dia in month.historicoDiario) {
+    const termosDia = month.historicoDiario[dia].termosComResultado || [];
+
+    termosDia.forEach(({ termo, buscas, vendas }) => {
+      if (!agregados[termo]) {
+        agregados[termo] = { buscas: 0, teveVenda: false };
+      }
+
+      agregados[termo].buscas += buscas;
+      if (vendas > 0) {
+        agregados[termo].teveVenda = true;
+      }
+    });
+  }
+
+  // Filtra os termos que nunca tiveram venda e ordena por buscas
+  const top10 = Object.entries(agregados)
+    .filter(([, data]) => !data.teveVenda)
+    .sort((a, b) => b[1].buscas - a[1].buscas)
+    .slice(0, 10)
+    .map(([termo, data]) => ({ termo, buscas: data.buscas }));
+
+  const labels = top10.map(t => t.termo);
+  const values = top10.map(t => t.buscas);
+
   monthlyChartInstances[chartId] = new Chart(canvas, {
     type: 'pie',
     data: {
@@ -888,18 +973,39 @@ function renderPieDistribuicaoTop10BuscasSemVendas(monthId, month) {
   });
 }
 
-/**
- * Renderiza um gráfico de pizza com a distribuição das 10 principais buscas sem resultado.
- */
+// Renderiza um gráfico de pizza com a distribuição das 10 principais buscas sem resultado.
 function renderPieDistribuicaoTop10BuscasSemResultado(monthId, month) {
   const chartId = `pieDistribuicaoTop10BuscasSemResultado-${monthId}`;
   const canvas = document.getElementById(chartId);
-  if (!canvas) return;
-  destroyMonthlyChart(chartId);
-  const termos = (month.top50SemResultado || []).slice(0, 10);
-  const labels = termos.map(i => i.termo.length > 18 ? i.termo.slice(0, 16) + '...' : i.termo);
 
-  const values = termos.map(i => i.buscas);
+  if (!canvas) return;
+
+  destroyMonthlyChart(chartId);
+
+  destroyMonthlyChart(chartId);
+
+  const termos = [];
+
+  for (const dia in month.historicoDiario) {
+    const termosDia = month.historicoDiario[dia].termosSemResultado || [];
+    termos.push(...termosDia);
+  }
+
+  // Agrupar e somar buscas por termo
+  const agregados = {};
+  termos.forEach(({ termo, buscas }) => {
+    agregados[termo] = (agregados[termo] || 0) + buscas;
+  });
+
+  // Converter para array, ordenar e pegar top 10
+  const top10 = Object.entries(agregados)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([termo, buscas]) => ({ termo, buscas }));
+
+  const labels = top10.map(t => t.termo);
+  const values = top10.map(t => t.buscas);
+
   monthlyChartInstances[chartId] = new Chart(canvas, {
     type: 'pie',
     data: {

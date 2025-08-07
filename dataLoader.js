@@ -1,42 +1,52 @@
 const MONTHS = [
-	"Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-	"Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ];
 
 function loadYearDataEncrypted() {
-	window.monthsData = {}
+  window.monthsData = {}
 
-	MONTHS.forEach(function (month) {
-		loadEncryptedMonth(month);
-	});
+  MONTHS.forEach(function (month) {
+    loadEncryptedMonth(month);
+  });
 }
 
 function loadEncryptedMonth(month) {
-	try {
-		const year = window.definedYear
-		const key = `_${month}${year}Encrypted`;
-		const encData = window[key];
+  try {
+    const year = window.definedYear
+    const key = month === 'Março' ? `_Marco${year}Encrypted` : `_${month}${year}Encrypted`;
+    const encData = window[key];
+    let emptyMonth = {
+      [`${month}${year}`]: {
+        mobile: {
+          name: month,
+          year: year,
+          available: false,
+          historicoDiario: {}
+        },
+        desktop: {
+          name: month,
+          year: year,
+          available: false,
+          historicoDiario: {}
+        }
+      }
+    }
 
-		if (!encData) {
-			const dataMonth = {
-				[`${month}${year}`]: {
-					"name": month,
-					"year": year,
-					"available": false,
-				}
-			}
+    if (encData) {
+      const decrypted = CryptoJS.AES.decrypt(encData, window._dashboardPassword).toString(CryptoJS.enc.Utf8);
+      const decryptedParse = JSON.parse(decrypted);
 
-			window.monthsData = { ...window.monthsData, ...dataMonth };
-		} else {
-			const decrypted = CryptoJS.AES.decrypt(encData, window._dashboardPassword).toString(CryptoJS.enc.Utf8);
+      // Verifica se tem conteudo dentro dos dados descriptografados
+      // e caso tenha dados faltando de alguma plataforma recebe dados em branco
+      if (Object.keys(decryptedParse).length > 0)
+        emptyMonth = { [`${month}${year}`]: decryptedParse }
+    }
 
-			const decryptedParsed = JSON.parse(decrypted)
-
-			window.monthsData = { ...window.monthsData, ...decryptedParsed };
-		}
-	} catch (error) {
-		console.log(error)
-		throw error;
-	}
+    window.monthsData = { ...window.monthsData, ...emptyMonth }
+  } catch (error) {
+    console.log(error)
+    throw error;
+  }
 }
 

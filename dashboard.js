@@ -7,35 +7,115 @@ function constructorObj() {
   let monthsData = {}
 
   MONTHS.forEach((month) => {
-    const dataMonth = {
-      [`${month}${year}`]: {
-        "name": month,
-        "year": year,
-        "available": false,
-      }
+    const monthKey = `${month}${year}`;
+    const baseData = {
+      name: month,
+      year: year,
+      available: false,
+      historicoDiario: {}
     }
-
-    monthsData = { ...monthsData, ...dataMonth }
-  })
+    monthsData[monthKey] = {
+      mobile: baseData,
+      desktop: baseData
+    };
+  });
 
   return monthsData
 }
 
 function getMonthData() {
-  // TODO - ajustar essa linha quando os dados forem atualizados - const monthObj = window.monthsData
-  const monthObj = { mobile: window.monthsData }
+  let data = {};
+  const monthObj = window.monthsData;
+  const platformSelectDiv = document?.getElementById('platformCustomSelect');
+  const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
 
-  const platformSelectDiv = document?.getElementById('platformCustomSelect')
-  const platform = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
+  if (!monthObj || !device) return data;
 
-  if (!monthObj || !platform) return;
+  Object.keys(monthObj).forEach(monthKey => {
+    if (device === 'desktop e mobile') {
+      const m = monthObj[monthKey].mobile || { historicoDiario: {} };
+      const d = monthObj[monthKey].desktop || { historicoDiario: {} };
 
-  if (platform === 'desktop e mobile') {
-    // TODO - fazer os calculos para todas as plataformas
-    return constructorObj()
-  } else {
-    return monthObj[platform] || constructorObj()
-  }
+      const historicoDiario = {};
+
+      const todasDatas = new Set([
+        ...Object.keys(m.historicoDiario || {}),
+        ...Object.keys(d.historicoDiario || {})
+      ]);
+
+      todasDatas.forEach(dataDia => {
+        const mob = m.historicoDiario?.[dataDia] || {};
+        const desk = d.historicoDiario?.[dataDia] || {};
+
+        const r1 = mob.resumoDiario || {};
+        const r2 = desk.resumoDiario || {};
+
+        const resumo = {
+          origem: device,
+          buscasComResultado: Number(r1.buscasComResultado || 0) + Number(r2.buscasComResultado || 0),
+          buscasSemResultado: Number(r1.buscasSemResultado || 0) + Number(r2.buscasSemResultado || 0),
+          cliques: Number(r1.cliques || 0) + Number(r2.cliques || 0),
+          cliquesUnicos: Number(r1.cliquesUnicos || 0) + Number(r2.cliquesUnicos || 0),
+          pedidos: Number(r1.pedidos || 0) + Number(r2.pedidos || 0),
+          vendas: Number(r1.vendas || 0) + Number(r2.vendas || 0),
+          ctr: 0,
+          conversao: 0,
+          ticketMedio: 0
+        };
+
+        resumo.ctr = resumo.cliques && resumo.buscasComResultado
+          ? +(resumo.cliques / resumo.buscasComResultado * 100).toFixed(2)
+          : 0;
+
+        resumo.conversao = resumo.pedidos && resumo.cliques
+          ? +(resumo.pedidos / resumo.cliques * 100).toFixed(2)
+          : 0;
+
+        resumo.ticketMedio = resumo.pedidos
+          ? +(resumo.vendas / resumo.pedidos).toFixed(2)
+          : 0;
+
+        historicoDiario[dataDia] = {
+          resumoDiario: resumo,
+          termosSemResultado: [...(mob.termosSemResultado || []), ...(desk.termosSemResultado || [])],
+          termosComResultado: [...(mob.termosComResultado || []), ...(desk.termosComResultado || [])]
+        };
+      });
+
+      const dias = Object.values(historicoDiario);
+      let totalBuscas = 0, buscasComResultado = 0, conversaoSoma = 0, ctrSoma = 0, ticketSoma = 0, vendas = 0, pedidos = 0;
+
+      dias.forEach(dia => {
+        const r = dia.resumoDiario || {};
+        totalBuscas += Number(r.buscasSemResultado || 0) + Number(r.buscasComResultado || 0);
+        buscasComResultado += Number(r.buscasComResultado || 0);
+        conversaoSoma += Number(r.conversao || 0);
+        ctrSoma += Number(r.ctr || 0);
+        ticketSoma += Number(r.ticketMedio || 0);
+        vendas += Number(r.vendas || 0);
+        pedidos += Number(r.pedidos || 0);
+      });
+
+      const diasCount = dias.length;
+      data[monthKey] = {
+        name: m.name || d.name,
+        year: m.year || d.year,
+        available: (m.available || d.available) && diasCount > 0,
+        historicoDiario,
+        totalBuscas,
+        buscasComResultado,
+        conversao: diasCount ? +(conversaoSoma / diasCount).toFixed(2) : 0,
+        ctr: diasCount ? +(ctrSoma / diasCount).toFixed(1) : 0,
+        ticketMedio: diasCount ? +(ticketSoma / diasCount).toFixed(2) : 0,
+        vendas,
+        pedidos
+      };
+    } else {
+      data[monthKey] = monthObj[monthKey][device];
+    }
+  });
+
+  return data;
 }
 
 function generateTableHTML(headers, rows) {
@@ -63,22 +143,25 @@ function initializeMonthSelector() {
   const timeline = document.getElementById('monthTimeline');
   timeline.innerHTML = '';
 
-  const dataMonths = getMonthData()
+  const dataMonths = getMonthData();
 
   Object.keys(dataMonths).forEach(monthKey => {
-    const month = dataMonths[monthKey];
+    const monthObj = dataMonths[monthKey];
+    if (!monthObj) return;
+
+    const isAvailable = !!monthObj.available && Object.keys(monthObj.historicoDiario || {}).length > 0;
+
     const card = document.createElement('div');
-    card.className = `month-card${!month.available ? ' disabled' : ''}${selectedMonths.includes(monthKey) ? ' selected' : ''}`;
+    card.className = `month-card${!isAvailable ? ' disabled' : ''}${selectedMonths.includes(monthKey) ? ' selected' : ''}`;
     card.dataset.month = monthKey;
-    card.innerHTML = `<div class="month-name">${month.name}</div><div class="month-year">${month.year}</div>`;
-    if (month.available) {
-      card.addEventListener('click', function () {
-        toggleMonth(monthKey, dataMonths);
-      });
+    card.innerHTML = `<div class="month-name">${monthObj.name}</div><div class="month-year">${monthObj.year}</div>`;
+    if (isAvailable) {
+      card.addEventListener('click', function () { toggleMonth(monthKey, dataMonths) })
     }
     timeline.appendChild(card);
   });
 }
+
 
 function toggleMonth(monthKey, dataMonths) {
   const idx = selectedMonths.indexOf(monthKey);
@@ -126,9 +209,8 @@ function updateDashboard() {
   if (monthsBlocksContainer) {
     monthsBlocksContainer.innerHTML = '';
     monthsBlocksRendered = [];
-    selectedMonths.forEach(monthKey => {
-      addSelectedMonthBlock(monthKey);
-    });
+    selectedMonths.forEach(monthKey => { addSelectedMonthBlock(monthKey); });
+    initializeModals()
   }
 
   if (selectedMonths.length === 0) {
@@ -138,32 +220,85 @@ function updateDashboard() {
     if (chartsSection) chartsSection.style.display = 'none';
     if (tableSection) tableSection.style.display = 'none';
     if (insightsSection) insightsSection.style.display = 'none';
-    return;
-  }
-  if (keyMetrics) keyMetrics.style.display = '';
-  if (chartsSection) chartsSection.style.display = '';
-  if (tableSection) tableSection.style.display = '';
-  if (insightsSection) insightsSection.style.display = '';
 
-  updateKPIs();
-  updateMainCharts();
-  updateDetailedTable();
-  updateInsights();
+  } else {
+    if (keyMetrics) keyMetrics.style.display = '';
+    if (chartsSection) chartsSection.style.display = '';
+    if (tableSection) tableSection.style.display = '';
+    if (insightsSection) insightsSection.style.display = '';
+
+    updateKPIs();
+    updateMainCharts();
+    updateDetailedTable();
+    updateInsights();
+  }
 }
 
 function updateKPIs() {
-  const dataMonths = getMonthData()
-
+  const dataMonths = getMonthData();
   const grid = document.getElementById('kpiGrid');
-
   grid.innerHTML = '';
 
+  // Novo: Utilitário para somar ou tirar média dos KPIs dos dias
+  function _aggregateKPI(month) {
+    if (!month || !month.historicoDiario) return {
+      totalBuscas: 0, buscasComResultado: 0, conversao: 0, ctr: 0, ticketMedio: 0, vendas: 0, pedidos: 0
+    };
+    const dias = Object.values(month.historicoDiario);
+    if (!dias.length) return {
+      totalBuscas: 0, buscasComResultado: 0, conversao: 0, ctr: 0, ticketMedio: 0, vendas: 0, pedidos: 0
+    };
+    let totalBuscas = 0, buscasComResultado = 0, conversaoSoma = 0, ctrSoma = 0, ticketSoma = 0, vendas = 0, pedidos = 0;
+
+    dias.forEach(d => {
+      const r = d.resumoDiario || {};
+      const buscas = Number(r.buscasSemResultado || 0) + Number(r.buscasComResultado || 0);
+      totalBuscas += buscas;
+      buscasComResultado += Number(r.buscasComResultado || 0);
+      conversaoSoma += Number(r.conversao || 0);
+      ctrSoma += Number(r.ctr || 0);
+      ticketSoma += Number((r.vendas / r.pedidos) || 0);
+      vendas += Number(r.vendas || 0);
+      pedidos += Number(r.pedidos || 0);
+    });
+
+    const diasCount = dias.length;
+    return {
+      totalBuscas,
+      buscasComResultado,
+      conversao: diasCount ? +(conversaoSoma / diasCount).toFixed(2) : 0,
+      ctr: diasCount ? +(ctrSoma / diasCount).toFixed(1) : 0,
+      ticketMedio: diasCount ? +(ticketSoma / diasCount).toFixed(2) : 0,
+      vendas,
+      pedidos
+    };
+  }
+
+  // Acumula os meses selecionados
+  let totalBuscas = 0, buscasComResultado = 0, conversao = 0, ctr = 0, ticketMedio = 0, vendas = 0, pedidos = 0, meses = 0;
+  selectedMonths.forEach(m => {
+    const kpi = _aggregateKPI(dataMonths[m]);
+    totalBuscas += kpi.totalBuscas;
+    buscasComResultado += kpi.buscasComResultado;
+    conversao += kpi.conversao;
+    ctr += kpi.ctr;
+    ticketMedio += kpi.ticketMedio;
+    vendas += kpi.vendas;
+    pedidos += kpi.pedidos;
+    meses += 1;
+  });
+
+  // Para médias entre meses
+  conversao = meses ? (conversao / meses) : 0;
+  ctr = meses ? (ctr / meses) : 0;
+  ticketMedio = meses ? (ticketMedio / meses) : 0;
+
   const kpis = [
-    { label: 'Total de Buscas', value: selectedMonths.reduce((a, m) => a + dataMonths[m].totalBuscas, 0).toLocaleString() },
-    { label: 'Buscas com Resultado', value: selectedMonths.reduce((a, m) => a + dataMonths[m].buscasComResultado, 0).toLocaleString() },
-    { label: 'Taxa de Conversão', value: (selectedMonths.reduce((a, m) => a + dataMonths[m].conversao, 0) / selectedMonths.length).toFixed(2) + '%' },
-    { label: 'CTR Médio', value: (selectedMonths.reduce((a, m) => a + dataMonths[m].ctr, 0) / selectedMonths.length).toFixed(1) + '%' },
-    { label: 'Ticket Médio', value: 'R$ ' + (selectedMonths.reduce((a, m) => a + dataMonths[m].ticketMedio, 0) / selectedMonths.length).toFixed(2) },
+    { label: 'Total de Buscas', value: totalBuscas.toLocaleString() },
+    { label: 'Buscas com Resultado', value: buscasComResultado.toLocaleString() },
+    { label: 'Taxa de Conversão', value: conversao.toFixed(2) + '%' },
+    { label: 'CTR Médio', value: ctr.toFixed(1) + '%' },
+    { label: 'Ticket Médio', value: 'R$ ' + ticketMedio.toFixed(2) },
   ];
   kpis.forEach(kpi => {
     const card = document.createElement('div');
@@ -174,10 +309,9 @@ function updateKPIs() {
   });
 }
 
-function updateMainCharts() {
-  const dataMonths = getMonthData()
 
-  // Atualiza a grade de gráficos principais
+function updateMainCharts() {
+  const dataMonths = getMonthData();
   const grid = document.getElementById('mainChartsGrid');
   grid.innerHTML = `
     <div class="chart-container">
@@ -221,28 +355,49 @@ function updateMainCharts() {
       <div id="table-chartEvolucaoBuscas" class="chart-table"></div>
     </div>
   `;
-  // Chama as funções de renderização com as listas combinadas
-  const combined = getCombinedTopTerms(dataMonths);
-  const labelsTop = combined.map(item => item.termo);
-  const valuesTop = combined.map(item => item.buscas);
-  renderBarTop10TermosBuscados(labelsTop, valuesTop);
-  renderPieProporcaoTop10Buscas(labelsTop, valuesTop);
-  const monthNames = selectedMonths.map(m => dataMonths[m].name);
-  const convValues = selectedMonths.map(m => dataMonths[m].conversao);
-  renderBarTaxaConversao(monthNames, convValues);
-  const totalValues = selectedMonths.map(m => dataMonths[m].totalBuscas);
-  const comResultadoValues = selectedMonths.map(m => dataMonths[m].buscasComResultado);
-  renderLineEvolucaoBuscas(monthNames, totalValues, comResultadoValues);
 
-  // Gera tabelas de dados para cada gráfico principal
-  // 1. Tabela de Top 10 Termos Buscados (barra)
+  // Utilitário para somar termos do mês (acumula por termo e ordena)
+  function getTopTerms(dataMonths, monthsList, limit = 10) {
+    const termoMap = {};
+    monthsList.forEach(monthKey => {
+      const month = dataMonths[monthKey];
+      if (!month || !month.historicoDiario) return;
+      Object.values(month.historicoDiario).forEach(dayObj => {
+        (dayObj.termosComResultado || []).forEach(item => {
+          if (!item.termo) return;
+          if (!termoMap[item.termo]) {
+            termoMap[item.termo] = { ...item };
+          } else {
+            termoMap[item.termo].buscas += item.buscas;
+          }
+        });
+      });
+    });
+    return Object.values(termoMap).sort((a, b) => b.buscas - a.buscas).slice(0, limit);
+  }
+
+  // Para gráficos e tabelas principais
+  const labelsTop = [];
+  const valuesTop = [];
+  const selected = selectedMonths;
+  const topTerms = getTopTerms(dataMonths, selected, 10);
+  topTerms.forEach(item => {
+    labelsTop.push(item.termo);
+    valuesTop.push(item.buscas);
+  });
+
+  // Gráfico Top 10 Termos Buscados (barra)
+  renderBarTop10TermosBuscados(labelsTop, valuesTop);
+
+  // Gráfico Proporção Top 10 (pizza)
+  renderPieProporcaoTop10Buscas(labelsTop, valuesTop);
+
+  // Tabelas dos gráficos
   const tableBarTopEl = document.getElementById('table-chartTop10TermosBuscados');
   if (tableBarTopEl) {
     const rows = labelsTop.map((label, i) => [label, valuesTop[i].toLocaleString()]);
     tableBarTopEl.innerHTML = generateTableHTML(['Termo', 'Buscas'], rows);
   }
-
-  // 2. Tabela de Proporção Top 10 Buscas (pizza)
   const tablePieTopEl = document.getElementById('table-chartProporcaoTop10Buscas');
   if (tablePieTopEl) {
     const totalSum = valuesTop.reduce((acc, val) => acc + val, 0);
@@ -253,23 +408,48 @@ function updateMainCharts() {
     tablePieTopEl.innerHTML = generateTableHTML(['Termo', 'Buscas', 'Proporção'], rows);
   }
 
-  // 3. Tabela de Taxa de Conversão (barra)
+  // Gráfico Taxa de Conversão (barra)
+  const monthNames = selected.map(m => dataMonths[m]?.name || '');
+  const convValues = selected.map(m => {
+    const month = dataMonths[m];
+    if (!month || !month.historicoDiario) return 0;
+    const dias = Object.values(month.historicoDiario);
+    if (!dias.length) return 0;
+    const soma = dias.reduce((a, d) => a + Number(d.resumoDiario?.conversao || 0), 0);
+    return +(soma / dias.length).toFixed(2);
+  });
+  renderBarTaxaConversao(monthNames, convValues);
   const tableConvEl = document.getElementById('table-chartTaxaConversao');
   if (tableConvEl) {
-    const rows = selectedMonths.map((monthKey) => {
-      const m = dataMonths[monthKey];
-      return [m.name, m.conversao.toFixed(2) + '%'];
+    const rows = selected.map((monthKey, idx) => {
+      return [monthNames[idx], convValues[idx].toFixed(2) + '%'];
     });
     tableConvEl.innerHTML = generateTableHTML(['Mês', 'Conversão (%)'], rows);
   }
 
-  // 4. Tabela de Evolução das Buscas (linha)
+  // Gráfico Evolução das Buscas (linha)
+  const totalValues = selected.map(m => {
+    const month = dataMonths[m];
+    if (!month || !month.historicoDiario) return 0;
+    const dias = Object.values(month.historicoDiario);
+    return dias.reduce((a, d) =>
+      a + Number(d.resumoDiario?.buscasSemResultado || 0) + Number(d.resumoDiario?.buscasComResultado || 0)
+      , 0);
+  });
+  const comResultadoValues = selected.map(m => {
+    const month = dataMonths[m];
+    if (!month || !month.historicoDiario) return 0;
+    const dias = Object.values(month.historicoDiario);
+    return dias.reduce((a, d) => a + Number(d.resumoDiario?.buscasComResultado || 0), 0);
+  });
+  renderLineEvolucaoBuscas(monthNames, totalValues, comResultadoValues);
   const tableEvolEl = document.getElementById('table-chartEvolucaoBuscas');
   if (tableEvolEl) {
-    const rows = selectedMonths.map((monthKey) => {
-      const m = dataMonths[monthKey];
-      const semRes = m.totalBuscas - m.buscasComResultado;
-      return [m.name, m.totalBuscas.toLocaleString(), m.buscasComResultado.toLocaleString(), semRes.toLocaleString()];
+    const rows = selected.map((monthKey, idx) => {
+      const total = totalValues[idx];
+      const comRes = comResultadoValues[idx];
+      const semRes = total - comRes;
+      return [monthNames[idx], total.toLocaleString(), comRes.toLocaleString(), semRes.toLocaleString()];
     });
     tableEvolEl.innerHTML = generateTableHTML(['Mês', 'Total', 'Com Resultado', 'Sem Resultado'], rows);
   }
@@ -277,27 +457,12 @@ function updateMainCharts() {
   initializeModals();
 }
 
-function getCombinedTopTerms(dataMonths) {
-  const termoMap = {};
-  selectedMonths.forEach(monthKey => {
-    const arr = dataMonths[monthKey].top50MaisPesquisados || [];
-    arr.forEach(item => {
-      if (!termoMap[item.termo]) {
-        termoMap[item.termo] = { ...item };
-      } else {
-        termoMap[item.termo].buscas += item.buscas;
-      }
-    });
-  });
-
-  return Object.values(termoMap).sort((a, b) => b.buscas - a.buscas).slice(0, 10);
-}
-
 function updateDetailedTable() {
-  const dataMonths = getMonthData()
+  const dataMonths = getMonthData();
   const tableHead = document.getElementById('tableHead');
   const tableBody = document.getElementById('tableBody');
 
+  // Monta header dinâmico
   let headerHTML = '<tr><th rowspan="2">Termo de Busca</th>';
   headerHTML += `<th colspan="${selectedMonths.length}">Buscas</th>`;
   headerHTML += `<th colspan="${selectedMonths.length}">Vendas</th>`;
@@ -310,32 +475,70 @@ function updateDetailedTable() {
   headerHTML += '</tr>';
   tableHead.innerHTML = headerHTML;
 
+  // Utilitário: acumula os termos dos dias do(s) mês(es)
+  function collectTermsByMonth(monthObj) {
+    const termsMap = {};
+    if (!monthObj || !monthObj.historicoDiario) return [];
+    Object.values(monthObj.historicoDiario).forEach(dayObj => {
+      (dayObj.termosComResultado || []).forEach(term => {
+        if (!term.termo) return;
+        if (!termsMap[term.termo]) {
+          termsMap[term.termo] = { ...term };
+        } else {
+          // Soma buscas, vendas, pedidos, recalcula conversão
+          termsMap[term.termo].buscas += term.buscas;
+          termsMap[term.termo].vendas += term.vendas || 0;
+          termsMap[term.termo].pedidos += term.pedidos || 0;
+        }
+      });
+    });
+    // Recalcula conversão no final (se quiser usar pedidos, pode ajustar)
+    Object.values(termsMap).forEach(t => {
+      t.conversao = t.buscas > 0 ? +(t.pedidos / t.buscas * 100).toFixed(2) : 0;
+    });
+    return Object.values(termsMap);
+  }
+
+  // Junta os top termos dos meses selecionados
   const allTerms = new Set();
-  selectedMonths.forEach(month => {
-    (dataMonths[month].top50MaisPesquisados || []).forEach(item => allTerms.add(item.termo));
+  const monthTerms = {}; // termo por mês: { [monthKey]: { termo: obj } }
+  selectedMonths.forEach(monthKey => {
+    const terms = collectTermsByMonth(dataMonths[monthKey]);
+    monthTerms[monthKey] = {};
+    terms.forEach(item => {
+      allTerms.add(item.termo);
+      monthTerms[monthKey][item.termo] = item;
+    });
   });
 
-  const uniqueTerms = Array.from(allTerms).slice(0, tableItemLimit);
+  // Limita a lista aos tableItemLimit termos mais buscados (soma dos meses)
+  const termBuscas = {};
+  allTerms.forEach(termo => {
+    termBuscas[termo] = selectedMonths.reduce((a, m) => a + (monthTerms[m][termo]?.buscas || 0), 0);
+  });
+  const uniqueTerms = Object.entries(termBuscas)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, tableItemLimit)
+    .map(x => x[0]);
 
+  // Monta corpo da tabela
   tableBody.innerHTML = '';
   uniqueTerms.forEach(termo => {
     let rowHTML = `<td><strong>${termo}</strong></td>`;
     const buscasValues = [], vendasValues = [], conversaoValues = [];
 
     selectedMonths.forEach(month => {
-      const found = (dataMonths[month].top50MaisPesquisados || []).find(t => t.termo === termo);
+      const found = monthTerms[month][termo];
       rowHTML += found ? `<td>${found.buscas.toLocaleString()}</td>` : '<td>-</td>';
       buscasValues.push(found ? found.buscas : 0);
     });
-
     selectedMonths.forEach(month => {
-      const found = (dataMonths[month].top50MaisPesquisados || []).find(t => t.termo === termo);
-      rowHTML += found ? `<td>${found.vendas.toLocaleString()}</td>` : '<td>-</td>';
-      vendasValues.push(found ? found.vendas : 0);
+      const found = monthTerms[month][termo];
+      rowHTML += found ? `<td>${found.vendas?.toLocaleString?.() || 0}</td>` : '<td>-</td>';
+      vendasValues.push(found ? found.vendas || 0 : 0);
     });
-
     selectedMonths.forEach(month => {
-      const found = (dataMonths[month].top50MaisPesquisados || []).find(t => t.termo === termo);
+      const found = monthTerms[month][termo];
       rowHTML += found ? `<td>${found.conversao.toFixed(2)}%</td>` : '<td>-</td>';
       conversaoValues.push(found ? found.conversao : 0);
     });
@@ -355,17 +558,87 @@ function updateDetailedTable() {
   });
 }
 
+
 function updateInsights() {
-  const dataMonths = getMonthData()
+  const dataMonths = getMonthData();
   const container = document.getElementById('insightsContainer');
   container.innerHTML = '';
-  const insights = generateInsights(selectedMonths, dataMonths);
+
+  function aggregateKPI(month) {
+    if (!month || !month.historicoDiario) return { conversao: 0, totalBuscas: 0, ticketMedio: 0 };
+    const dias = Object.values(month.historicoDiario);
+    if (!dias.length) return { conversao: 0, totalBuscas: 0, ticketMedio: 0 };
+    let totalBuscas = 0, conversaoSoma = 0, ticketSoma = 0;
+    dias.forEach(d => {
+      const r = d.resumoDiario || {};
+      totalBuscas += Number(r.buscasSemResultado || 0) + Number(r.buscasComResultado || 0);
+      conversaoSoma += Number(r.conversao || 0);
+      ticketSoma += Number(r.ticketMedio || 0);
+    });
+    return {
+      conversao: +(conversaoSoma / dias.length).toFixed(2),
+      totalBuscas,
+      ticketMedio: +(ticketSoma / dias.length).toFixed(2)
+    };
+  }
+
+  let insights = [];
+  if (selectedMonths.length < 2) {
+    insights.push({ tipo: '', icon: '📊', title: 'Selecione mais meses', description: 'Compare pelo menos 2 meses para gerar insights.' });
+  } else {
+    const first = aggregateKPI(dataMonths[selectedMonths[0]]);
+    const last = aggregateKPI(dataMonths[selectedMonths[selectedMonths.length - 1]]);
+
+    const variacao = first.conversao === 0 ? 0 : ((last.conversao - first.conversao) / first.conversao) * 100;
+    if (Math.abs(variacao) > 5) {
+      insights.push({
+        tipo: variacao > 0 ? 'positive' : 'negative',
+        icon: variacao > 0 ? '📈' : '⚠️',
+        title: 'Variação de Conversão',
+        description: `Mudança de ${(variacao > 0 ? '+' : '') + variacao.toFixed(1)}% na conversão de ${selectedMonths[0]} para ${selectedMonths[selectedMonths.length - 1]}.`
+      });
+    }
+
+    const variacaoBuscas = first.totalBuscas === 0 ? 0 : ((last.totalBuscas - first.totalBuscas) / first.totalBuscas) * 100;
+    if (variacaoBuscas > 10) {
+      insights.push({
+        tipo: 'positive',
+        icon: '🚀',
+        title: 'Crescimento de Buscas',
+        description: `O volume de buscas cresceu ${variacaoBuscas.toFixed(1)}% no período.`
+      });
+    } else if (variacaoBuscas < -10) {
+      insights.push({
+        tipo: 'negative',
+        icon: '📉',
+        title: 'Queda nas Buscas',
+        description: `O volume de buscas diminuiu ${Math.abs(variacaoBuscas).toFixed(1)}% no período.`
+      });
+    }
+
+    const variacaoTicket = first.ticketMedio === 0 ? 0 : ((last.ticketMedio - first.ticketMedio) / first.ticketMedio) * 100;
+    if (variacaoTicket > 5) {
+      insights.push({
+        tipo: 'positive',
+        icon: '💰',
+        title: 'Aumento do Ticket Médio',
+        description: `O ticket médio aumentou ${variacaoTicket.toFixed(1)}%.`
+      });
+    }
+    insights.push({
+      tipo: '',
+      icon: '💡',
+      title: 'Oportunidade Identificada',
+      description: 'Termos com alta conversão constante merecem destaque em campanhas e vitrines.'
+    });
+  }
+
   insights.forEach(insight => {
     const card = document.createElement('div');
     card.className = `insight-card ${insight.tipo || ''}`;
     card.innerHTML = `<div class="insight-icon">${insight.icon}</div>
                       <div class="insight-title">${insight.title}</div>
-                      <div the="insight-description">${insight.description}</div>`;
+                      <div class="insight-description">${insight.description}</div>`;
     container.appendChild(card);
   });
 }
@@ -416,18 +689,20 @@ function initializeModals() {
 }
 
 function addSelectedMonthBlock(monthKey) {
-  const dataMonths = getMonthData()
+  const dataMonths = getMonthData();
+  const platformSelectDiv = document?.getElementById('platformCustomSelect');
+  const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
 
   if (monthsBlocksRendered.includes(monthKey)) return;
   monthsBlocksRendered.push(monthKey);
 
   const month = dataMonths[monthKey];
+
   if (!month) return;
-  const uniqueId = monthKey;
+  const uniqueId = monthKey + '-' + device;
   const container = document.getElementById('selected-months-blocks');
   const block = document.createElement('div');
   block.className = 'selected-month-block';
-
   block.innerHTML = `
   <div class="selected-month-block-header">
     <h3>${month.name} ${month.year} </h3> 
@@ -506,7 +781,8 @@ function addSelectedMonthBlock(monthKey) {
       <div class="advanced-header">
         <h3 class="section-title" style="text-align:center;">Indicadores Avançados</h3>
         <button class="advanced-toggle" aria-label="Expandir">
-          <svg viewBox="0 0 20 20" width="22" height="22"><polyline points="6 8 10 12 14 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg viewBox="0 0 20 20" width="22" height="22">
+          <polyline points="6 8 10 12 14 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
       
@@ -765,20 +1041,27 @@ function addSelectedMonthBlock(monthKey) {
 
   const toggleBtn = block.querySelector('.selected-month-toggle');
   // Alterna a expansão do bloco e renderiza os gráficos diários quando expandido
+
   toggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const expanded = block.classList.toggle('expanded');
     if (expanded) {
-      // Renderiza gráficos diários apenas quando abrir
+      // Renderiza os gráficos e tabelas apenas ao expandir o bloco
       renderPieProporcaoBuscas(uniqueId, month);
       renderLineEvolucaoBuscasComResultado(uniqueId, month);
       renderLineEvolucaoBuscasSemResultado(uniqueId, month);
       renderLineEvolucaoCTR(uniqueId, month);
-      // Gera tabela para proporção geral
-      const total = month.buscasComResultado + month.buscasSemResultado;
+
+      const total = Object.values(month.historicoDiario || {}).reduce(
+        (acc, d) => {
+          acc.com += Number(d.resumoDiario?.buscasComResultado || 0);
+          acc.sem += Number(d.resumoDiario?.buscasSemResultado || 0);
+          return acc;
+        }, { com: 0, sem: 0 }
+      );
       const geralRows = [
-        ['Com Resultado', month.buscasComResultado.toLocaleString(), total ? ((month.buscasComResultado / total) * 100).toFixed(1) + '%' : '0%'],
-        ['Sem Resultado', month.buscasSemResultado.toLocaleString(), total ? ((month.buscasSemResultado / total) * 100).toFixed(1) + '%' : '0%']
+        ['Com Resultado', total.com.toLocaleString(), (total.com + total.sem) ? ((total.com / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%'],
+        ['Sem Resultado', total.sem.toLocaleString(), (total.com + total.sem) ? ((total.sem / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%']
       ];
       const tableEl = document.getElementById(`table-pieProporcaoBuscas-${uniqueId}`);
       if (tableEl) {
@@ -787,6 +1070,7 @@ function addSelectedMonthBlock(monthKey) {
     }
   });
 
+  // Também permite expandir/recolher clicando na header do bloco (exceto botão)
   block.querySelector('.selected-month-block-header').addEventListener('click', (e) => {
     if (e.target !== toggleBtn) {
       const expanded = block.classList.toggle('expanded');
@@ -795,11 +1079,16 @@ function addSelectedMonthBlock(monthKey) {
         renderLineEvolucaoBuscasComResultado(uniqueId, month);
         renderLineEvolucaoBuscasSemResultado(uniqueId, month);
         renderLineEvolucaoCTR(uniqueId, month);
-        // Atualiza a tabela de proporção geral
-        const total = month.buscasComResultado + month.buscasSemResultado;
+        const total = Object.values(month.historicoDiario || {}).reduce(
+          (acc, d) => {
+            acc.com += Number(d.resumoDiario?.buscasComResultado || 0);
+            acc.sem += Number(d.resumoDiario?.buscasSemResultado || 0);
+            return acc;
+          }, { com: 0, sem: 0 }
+        );
         const geralRows = [
-          ['Com Resultado', month.buscasComResultado.toLocaleString(), total ? ((month.buscasComResultado / total) * 100).toFixed(1) + '%' : '0%'],
-          ['Sem Resultado', month.buscasSemResultado.toLocaleString(), total ? ((month.buscasSemResultado / total) * 100).toFixed(1) + '%' : '0%']
+          ['Com Resultado', total.com.toLocaleString(), (total.com + total.sem) ? ((total.com / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%'],
+          ['Sem Resultado', total.sem.toLocaleString(), (total.com + total.sem) ? ((total.sem / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%']
         ];
         const tableEl = document.getElementById(`table-pieProporcaoBuscas-${uniqueId}`);
         if (tableEl) {
@@ -834,60 +1123,93 @@ function addSelectedMonthBlock(monthKey) {
         renderPieDistribuicaoTop10BuscasSemVendas(uniqueId, month);
         renderPieDistribuicaoTop10BuscasSemResultado(uniqueId, month);
 
+        _filterTopTerms = (filter, pct, numItens = 10) => {
+          const terms = []
+          const agregados = {}
+
+          for (const day in month.historicoDiario) {
+            const dayTerm = month.historicoDiario[day][filter] || [];
+            terms.push(...dayTerm);
+          }
+
+          terms.forEach(({ termo, buscas }) => {
+            agregados[termo] = (agregados[termo] || 0) + buscas;
+          });
+
+          const rows = Object.entries(agregados)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, numItens)
+
+          if (pct) {
+            const sumCom = rows.reduce((acc, [, i]) => acc + i, 0);
+            return rows.map(([termo, buscas]) => [termo, buscas, sumCom ? ((buscas / sumCom) * 100).toFixed(1) + '%' : '0%'])
+          } else {
+            return rows
+          }
+        }
+
+        _filterTopTermsNoSales = (pct, numItens = 10) => {
+          const agregados = {};
+
+          for (const dia in month.historicoDiario) {
+            const termosDia = month.historicoDiario[dia].termosComResultado || [];
+
+            termosDia.forEach(({ termo, buscas, vendas }) => {
+              if (!agregados[termo])
+                agregados[termo] = { buscas: 0, teveVenda: false };
+
+              if (vendas > 0)
+                agregados[termo].teveVenda = true;
+
+
+              agregados[termo].buscas += buscas;
+            });
+          }
+
+          const rows = Object.entries(agregados)
+            .filter(([, data]) => !data.teveVenda)
+            .sort((a, b) => b[1].buscas - a[1].buscas)
+            .slice(0, numItens)
+            .map(([termo, data]) => ([termo, data.buscas]));
+
+          if (pct) {
+            const sumCom = rows.reduce((acc, [, i]) => acc + i, 0);
+            return rows.map(([termo, buscas]) => [termo, buscas, sumCom ? ((buscas / sumCom) * 100).toFixed(1) + '%' : '0%'])
+          } else {
+            return rows
+          }
+        }
+
         // 5. Top 10 Buscas com Resultado
-        const topCom = (month.top50MaisPesquisados || []).slice(0, 10);
-        const rowsCom = topCom.map(item => [item.termo, item.buscas.toLocaleString()]);
         const tableCom = document.getElementById(`table-barTop10BuscasComResultado-${uniqueId}`);
-        if (tableCom) {
-          tableCom.innerHTML = generateTableHTML(['Termo', 'Buscas'], rowsCom);
-        }
+        if (tableCom)
+          tableCom.innerHTML = generateTableHTML(['Termo', 'Buscas'], _filterTopTerms('termosComResultado'));
+
         // 6. Top 10 Buscas sem Resultado
-        const topSem = (month.top50SemResultado || []).slice(0, 10);
-        const rowsSem = topSem.map(item => [item.termo, item.buscas.toLocaleString()]);
         const tableSem = document.getElementById(`table-barTop10BuscasSemResultado-${uniqueId}`);
-        if (tableSem) {
-          tableSem.innerHTML = generateTableHTML(['Termo', 'Buscas'], rowsSem);
-        }
+        if (tableSem)
+          tableSem.innerHTML = generateTableHTML(['Termo', 'Buscas'], _filterTopTerms('termosSemResultado'));
+
         // 7. Buscas com Resultado, mas Sem Vendas
-        const topSemVenda = (month.top50SemVenda || []).slice(0, 10);
-        const rowsSemVenda = topSemVenda.map(item => [item.termo, item.buscas.toLocaleString()]);
         const tableSemVenda = document.getElementById(`table-barBuscasComResultadoSemVendas-${uniqueId}`);
-        if (tableSemVenda) {
-          tableSemVenda.innerHTML = generateTableHTML(['Termo', 'Buscas'], rowsSemVenda);
-        }
+        if (tableSemVenda)
+          tableSemVenda.innerHTML = generateTableHTML(['Termo', 'Buscas'], _filterTopTermsNoSales());
+
         // 8. Distribuição das Top 10 Buscas com Resultado
-        const distCom = (month.top50MaisPesquisados || []).slice(0, 10);
-        const sumCom = distCom.reduce((acc, i) => acc + i.buscas, 0);
-        const rowsPieCom = distCom.map(i => {
-          const pct = sumCom ? ((i.buscas / sumCom) * 100).toFixed(1) + '%' : '0%';
-          return [i.termo, i.buscas.toLocaleString(), pct];
-        });
         const tablePieCom = document.getElementById(`table-pieDistribuicaoTop10BuscasComResultado-${uniqueId}`);
-        if (tablePieCom) {
-          tablePieCom.innerHTML = generateTableHTML(['Termo', 'Buscas', 'Proporção'], rowsPieCom);
-        }
+        if (tablePieCom)
+          tablePieCom.innerHTML = generateTableHTML(['Termo', 'Buscas', 'Proporção'], _filterTopTerms('termosComResultado', true));
+
         // 9. Distribuição das Top 10 Buscas sem Vendas
-        const distSemVenda = (month.top50SemVenda || []).slice(0, 10);
-        const sumSemVenda = distSemVenda.reduce((acc, i) => acc + i.buscas, 0);
-        const rowsPieSemVenda = distSemVenda.map(i => {
-          const pct = sumSemVenda ? ((i.buscas / sumSemVenda) * 100).toFixed(1) + '%' : '0%';
-          return [i.termo, i.buscas.toLocaleString(), pct];
-        });
         const tablePieSemVenda = document.getElementById(`table-pieDistribuicaoTop10BuscasSemVendas-${uniqueId}`);
-        if (tablePieSemVenda) {
-          tablePieSemVenda.innerHTML = generateTableHTML(['Termo', 'Buscas', 'Proporção'], rowsPieSemVenda);
-        }
+        if (tablePieSemVenda)
+          tablePieSemVenda.innerHTML = generateTableHTML(['Termo', 'Buscas', 'Proporção'], _filterTopTermsNoSales(true));
+
         // 10. Distribuição das Top 10 Buscas sem Resultado
-        const distSemResultado = (month.top50SemResultado || []).slice(0, 10);
-        const sumSemResultado = distSemResultado.reduce((acc, i) => acc + i.buscas, 0);
-        const rowsPieSemResultado = distSemResultado.map(i => {
-          const pct = sumSemResultado ? ((i.buscas / sumSemResultado) * 100).toFixed(1) + '%' : '0%';
-          return [i.termo, i.buscas.toLocaleString(), pct];
-        });
         const tablePieSemResultado = document.getElementById(`table-pieDistribuicaoTop10BuscasSemResultado-${uniqueId}`);
-        if (tablePieSemResultado) {
-          tablePieSemResultado.innerHTML = generateTableHTML(['Termo', 'Buscas', 'Proporção'], rowsPieSemResultado);
-        }
+        if (tablePieSemResultado)
+          tablePieSemResultado.innerHTML = generateTableHTML(['Termo', 'Buscas', 'Proporção'], _filterTopTerms('termosSemResultado', true));
+
         advancedChartsRendered = true;
       }
     }
@@ -901,7 +1223,7 @@ function renderMonthBlockCharts(monthKey, uniqueId) {
 
   if (!month) return;
 
-  const proporcaoLabels = ["Com Resultado", "Sem Resultado"];
+  const proporcaoLabels = ['Com Resultado', 'Sem Resultado'];
   const proporcaoData = [
     month.buscasComResultado,
     month.buscasSemResultado
@@ -1115,6 +1437,7 @@ document.querySelectorAll('.custom-select').forEach((select) => {
         updateDashboard()
         initializeModals()
       }
+
       if (select.id === 'platformCustomSelect') {
         document.getElementById('selected-months-blocks').innerHTML = ''
 
@@ -1132,4 +1455,3 @@ document.querySelectorAll('.custom-select').forEach((select) => {
     }
   });
 });
-

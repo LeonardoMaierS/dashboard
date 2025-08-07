@@ -1,0 +1,1 @@
+window._Dezembro2025Encrypted = `U2FsdGVkX18+vg3lJxwC1S/uEdHvRhXhMt+sPNBqGos=`
