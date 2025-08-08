@@ -23,13 +23,13 @@ function constructorObj() {
   return monthsData
 }
 
-function getMonthData() {
+function getMonthData(platform) {
   let data = {};
   const monthObj = window.monthsData;
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
-  const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
+  const device = platform || platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase()
 
-  if (!monthObj || !device) return data;
+  if (!monthObj) return data;
 
   Object.keys(monthObj).forEach(monthKey => {
     if (device === 'desktop e mobile') {
@@ -132,7 +132,8 @@ function generateTableHTML(headers, rows) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  if (!getMonthData()) return;
+  if (!(window.monthsData && typeof window.monthsData === "object"))
+    return;
 
   initializeMonthSelector();
   initializeModals();
@@ -185,6 +186,7 @@ function toggleMonth(monthKey, dataMonths) {
       return ordemMeses.indexOf(ma.name) - ordemMeses.indexOf(mb.name);
     });
   }
+
   initializeMonthSelector();
   initializeModals();
   updateDashboard();
@@ -704,11 +706,13 @@ function addSelectedMonthBlock(monthKey) {
   const block = document.createElement('div');
   block.className = 'selected-month-block';
   block.innerHTML = `
-  <div class="selected-month-block-header">
-    <h3>${month.name} ${month.year} </h3> 
-    <button class="selected-month-toggle" aria-label="Expandir">
-      <svg viewBox="0 0 20 20"><polyline points="6 8 10 12 14 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
+  <div>
+    <div class="selected-month-block-header">
+      <h3>${month.name} ${month.year} </h3> 
+      <button class="selected-month-toggle" aria-label="Expandir">
+        <svg viewBox="0 0 20 20"><polyline points="6 8 10 12 14 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
   </div>
 
   <div class="selected-month-block-content">
@@ -760,6 +764,19 @@ function addSelectedMonthBlock(monthKey) {
         </div>
       </div>
       <canvas id="lineEvolucaoBuscasSemResultado-${uniqueId}"></canvas>
+    </div>
+
+    <div class="mes-section-block">
+      <div class="mes-chart-header">
+        <div class="mes-chart-title">
+          Evolução Diária do STR (Cliques)
+          <span class="info-trigger" data-modal="info-evol-diaria-str-${uniqueId}">i</span>
+        </div>
+        <div class="mes-chart-desc">
+          Cliques gerados pelas buscas, dia a dia em <b>${month.name} de ${month.year}</b>.
+        </div>
+      </div>
+      <canvas id="lineEvolucaoSTR-${uniqueId}"></canvas>
     </div>
 
     <!-- 4. Evolução Diária do CTR (%) -->
@@ -940,12 +957,18 @@ function addSelectedMonthBlock(monthKey) {
       </div>
     </div>
 
+    <div class="info-modal" id="info-evol-diaria-str-${uniqueId}">
+      <div class="info-content">
+        <strong>Evolução Diária do STR (Cliques)</strong>
+        <p>Exibe o total de cliques gerados pelas buscas em cada dia do mês.</p>
+        <div class="info-formula"><b>Leitura:</b> Picos de STR indicam maior interesse/engajamento com os resultados exibidos.</div>
+      </div>
+    </div>
+
     <div class="info-modal" id="info-evol-diaria-ctr-${uniqueId}">
       <div class="info-content">
         <strong>Evolução Diária do CTR (%)</strong>
-        <p>
-          Mostra o percentual de buscas que geraram ao menos um clique em produtos ao longo de cada dia do mês.
-        </p>
+        <p>Mostra o percentual de buscas que geraram ao menos um clique em produtos ao longo de cada dia do mês.</p>
         <div class="info-formula">
           <b>Fórmula:</b> CTR (%) = (Cliques / Buscas) × 100
         </div>
@@ -958,9 +981,7 @@ function addSelectedMonthBlock(monthKey) {
     <div class="info-modal" id="info-top10-com-resultado-${uniqueId}">
       <div class="info-content">
         <strong>Top 10 Buscas com Resultado</strong>
-        <p>
-          Lista os 10 termos mais pesquisados que apresentaram resultados no mês.
-        </p>
+        <p>Lista os 10 termos mais pesquisados que apresentaram resultados no mês.</p>
         <div class="info-formula">
           <b>Dica:</b> Analise se os termos do top 10 estão convertendo bem em vendas.
         </div>
@@ -1050,6 +1071,7 @@ function addSelectedMonthBlock(monthKey) {
       renderPieProporcaoBuscas(uniqueId, month);
       renderLineEvolucaoBuscasComResultado(uniqueId, month);
       renderLineEvolucaoBuscasSemResultado(uniqueId, month);
+      renderLineEvolucaoSTR(uniqueId, month);
       renderLineEvolucaoCTR(uniqueId, month);
 
       const total = Object.values(month.historicoDiario || {}).reduce(
@@ -1078,7 +1100,9 @@ function addSelectedMonthBlock(monthKey) {
         renderPieProporcaoBuscas(uniqueId, month);
         renderLineEvolucaoBuscasComResultado(uniqueId, month);
         renderLineEvolucaoBuscasSemResultado(uniqueId, month);
+        renderLineEvolucaoSTR(uniqueId, month);
         renderLineEvolucaoCTR(uniqueId, month);
+
         const total = Object.values(month.historicoDiario || {}).reduce(
           (acc, d) => {
             acc.com += Number(d.resumoDiario?.buscasComResultado || 0);
@@ -1454,4 +1478,118 @@ document.querySelectorAll('.custom-select').forEach((select) => {
       select.classList.remove('open')
     }
   });
+});
+
+function initializeExportBlock(dataMonths) {
+  const todasDatas = [];
+
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+
+  const primeiroDia = `${ano}-${mes}-01`;
+
+  Object.values(dataMonths).forEach(chave => {
+    if (chave.available)
+      for (const d in chave.historicoDiario)
+        todasDatas.push(d);
+  });
+
+  if (!todasDatas.length) return;
+
+  const menorData = todasDatas.reduce((a, b) => a < b ? a : b);
+  const maiorData = todasDatas.reduce((a, b) => a > b ? a : b);
+
+  const iniInput = document.getElementById('dataInicioExportReport');
+  const fimInput = document.getElementById('dataFimExportReport');
+
+  iniInput.min = menorData;
+  iniInput.max = maiorData;
+  fimInput.min = menorData;
+  fimInput.max = maiorData;
+
+  iniInput.value = primeiroDia;
+  fimInput.value = maiorData;
+}
+
+document.getElementById('btnExportReport').addEventListener('click', () => {
+  const hojeStr = new Date().toISOString().split('T')[0];
+  const ini = document.getElementById('dataInicioExportReport').value;
+  const fim = document.getElementById('dataFimExportReport').value;
+  const qtd = parseInt(document.getElementById('qtdTopExport').value, 10) || 10;
+  const platform = document.getElementById('platformExport').value || 'desktop e mobile';
+
+  if (!ini || !fim) {
+    alert('Preencha as datas.');
+    return;
+  }
+  if (ini > fim) {
+    alert('Data inicial não pode ser maior que a final.');
+    return;
+  }
+  if (fim > hojeStr || ini > hojeStr) {
+    alert('Datas não podem ser maiores que o dia de hoje.');
+    return;
+  }
+
+  const dataMonths = getMonthData(platform);
+  const agreg = {};
+
+  Object.values(dataMonths).forEach(monthObj => {
+    if (monthObj.available) {
+      for (const dia in monthObj.historicoDiario) {
+        if (dia >= ini && dia <= fim) {
+          (monthObj.historicoDiario[dia].termosComResultado).forEach(({ termo = '', buscas = 0, pedidos = 0, vendas = 0 }) => {
+            if (!agreg[termo])
+              agreg[termo] = { buscas: 0, pedidos: 0, vendas: 0 };
+            agreg[termo].buscas += buscas;
+            agreg[termo].pedidos += pedidos;
+            agreg[termo].vendas += vendas;
+          });
+        }
+      }
+    }
+  });
+
+  const rows = Object.entries(agreg)
+    .sort((a, b) => b[1].buscas - a[1].buscas)
+    .slice(0, qtd)
+    .map(([termo, v]) => [termo, v.buscas, v.pedidos, v.vendas]);
+
+  if (!rows.length) {
+    alert('Nenhum termo no intervalo.');
+    return;
+  }
+
+  const aoa = [['Termos', 'Buscas', 'Pedidos', 'Vendas'], ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const last = aoa.length;
+  const platformName = platform === 'desktop e mobile' ? 'Desktop_e_Mobile' : platform.charAt(0).toUpperCase() + platform.slice(1);
+  const iniName = ini.split('-').reverse().join('-');
+  const fimName = fim.split('-').reverse().join('-');
+
+  for (let r = 2; r <= last; r++) {
+    ws[`B${r}`].t = 'n'; ws[`B${r}`].z = '#,##0';
+    ws[`C${r}`].t = 'n'; ws[`C${r}`].z = '#,##0';
+    ws[`D${r}`].t = 'n'; ws[`D${r}`].z = '"R$" #,##0.00';
+  }
+
+  ws['!cols'] = [{ wch: 34 }, { wch: 12 }, { wch: 12 }, { wch: 16 }];
+  ws['!autofilter'] = { ref: `A1:D${last}` };
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
+  XLSX.writeFile(wb, `relatorio-buscas-${platformName}-${iniName}_a_${fimName}.xlsx`);
+});
+
+document.getElementById('openExportModal').addEventListener('click', () => {
+  document.getElementById('exportModal').style.display = 'block';
+});
+document.getElementById('closeExportModal').addEventListener('click', () => {
+  document.getElementById('exportModal').style.display = 'none';
+});
+window.addEventListener('click', (e) => {
+  if (e.target.id === 'exportModal') {
+    document.getElementById('exportModal').style.display = 'none';
+  }
 });

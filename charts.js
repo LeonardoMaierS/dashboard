@@ -1036,6 +1036,57 @@ function renderPieDistribuicaoTop10BuscasSemResultado(monthId, month) {
   });
 }
 
+function renderLineEvolucaoSTR(monthId, month) {
+  const chartId = `lineEvolucaoSTR-${monthId}`;
+  const canvas = document.getElementById(chartId);
+  if (!canvas) return;
+  destroyMonthlyChart(chartId);
+
+  const dias = Object.keys(month.historicoDiario).sort();
+  const labels = dias.map(d => {
+    const [y, m, dd] = d.split("-");
+    return `${dd}/${m}/${y}`;
+  });
+  const values = dias.map(d => month.historicoDiario[d].resumoDiario.cliques || 0);
+
+  const ctx = canvas.getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, hexToRgba('#3481be', 0.75));
+  grad.addColorStop(1, hexToRgba('#3481be', 0.0));
+
+  monthlyChartInstances[chartId] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'STR (Cliques)',
+        data: values,
+        borderColor: '#3481be',
+        backgroundColor: grad,
+        fill: true,
+        borderWidth: 2.5,
+        tension: 0.25,
+        pointRadius: 4,
+        pointHoverRadius: 9,
+        pointBackgroundColor: COLORS.textPrimary,
+        pointBorderColor: grad,
+        pointBorderWidth: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => `Cliques: ${ctx.parsed.y.toLocaleString()}` }
+        }
+      },
+      scales
+    }
+  });
+}
+
+window.renderLineEvolucaoSTR = renderLineEvolucaoSTR;
 window.renderBarTop10TermosBuscados = renderBarTop10TermosBuscados;
 window.renderPieProporcaoTop10Buscas = renderPieProporcaoTop10Buscas;
 window.renderBarTaxaConversao = renderBarTaxaConversao;

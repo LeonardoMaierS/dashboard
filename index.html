@@ -41,7 +41,7 @@
 
       <div class="custom-platform-select custom-select" id="platformCustomSelect">
         <div class="custom-select-list-up">
-          <span class="custom-platform-value custom-select-value">Mobile</span>
+          <span class="custom-platform-value custom-select-value">Desktop e Mobile</span>
           <div class="custom-select-arroww">
             <svg viewBox="0 0 20 20" fill="none">
               <path d="M5 8l5 5 5-5" stroke="#b3c8cf" stroke-width="2" stroke-linecap="round" />
@@ -57,6 +57,20 @@
 
       <div class="month-selector-container">
         <div class="month-timeline" id="monthTimeline"></div>
+      </div>
+
+      <button id="openExportModal" class="open-export-btn">Exportar Relatório</button>
+    </div>
+
+    <div class="info-modal" id="export-modal">
+      <div class="info-content">
+        <strong>Exportar Relatório de Buscas</strong>
+        <p>Permite exportar um arquivo Excel com os termos mais buscados no período selecionado.</p>
+        <ul>
+          <li>Defina a data de início e fim.</li>
+          <li>Escolha a quantidade de itens no ranking.</li>
+          <li>O relatório inclui Buscas, Pedidos e Vendas.</li>
+        </ul>
       </div>
     </div>
 
@@ -158,9 +172,9 @@
           Dúvidas ou sugestões? Contato:
           <a href="mailto:leonardo.silva28@farmaciassaojoao.com.br">leonardo.silva28@farmaciassaojoao.com.br</a>
         </span>
-        <span class="versao-dash">Versão 0.7.1</span>
+        <span class="versao-dash">Versão 0.7.6</span>
         <span class="ultima-atualizacao">
-          Última atualização: <span id="ultima-atualizacao-valor">07-08-2025</span>
+          Última atualização: <span id="ultima-atualizacao-valor">08-08-2025</span>
         </span>
       </div>
     </footer>
@@ -284,6 +298,19 @@
     </div>
   </div>
 
+  <div class="info-modal" id="export-relatorio-info">
+    <div class="info-content">
+      <strong>Exportar Relatório de Buscas</strong>
+      <p>Essa função permite gerar um arquivo Excel contendo:</p>
+      <ul>
+        <li>Período filtrado por data inicial e final</li>
+        <li>Quantidade de termos mais buscados</li>
+        <li>Filtro por plataforma: Mobile ou Desktop</li>
+        <li>Colunas de Buscas, Pedidos e Vendas</li>
+      </ul>
+    </div>
+  </div>
+
   <div class="info-modal" id="info-evolconv">
     <div class="info-content">
       <strong>Evolução da Conversão Diária</strong>
@@ -294,11 +321,49 @@
     </div>
   </div>
 
+  <div id="exportModal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" id="closeExportModal">&times;</span>
+      <h2>
+        Exportar Relatório de Buscas
+        <span class="info-trigger" data-modal="export-relatorio-info">i</span>
+      </h2>
+
+      <div class="export-box">
+        <label>De:
+          <input type="date" id="dataInicioExportReport" class="export-input">
+        </label>
+        <label>Para:
+          <input type="date" id="dataFimExportReport" class="export-input">
+        </label>
+        <label>Termos:
+          <select id="qtdTopExport" class="export-select">
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
+            <option value="40">40</option>
+            <option value="50">50</option>
+          </select>
+        </label>
+        <label>Plataforma:
+          <select id="platformExport" class="export-select">
+            <option value="desktop e mobile" selected>Desktop e Mobile</option>
+            <option value="desktop">Desktop</option>
+            <option value="mobile">Mobile</option>
+          </select>
+        </label>
+        <button id="btnExportReport" class="btn-export-top">Baixar Relatório</button>
+      </div>
+
+    </div>
+  </div>
+
   <div class="tooltip" id="tooltip"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
   <script src="scripts.js"></script>
   <script src="auth.js"></script>
   <script src="dataLoader.js"></script>

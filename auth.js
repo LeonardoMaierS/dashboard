@@ -1,13 +1,18 @@
 window.addEventListener('DOMContentLoaded', function () {
-  const dataMonths = getMonthData();
+  function _initDash() {
+    const dataMonths = getMonthData();
 
-  if (window.monthsData && typeof window.monthsData === "object") {
     document.getElementById('password-modal').style.display = 'none'
     document.getElementById('dashboard-main').style.display = 'block'
 
     initializeMonthSelector(dataMonths);
     updateDashboard(dataMonths)
+    initializeExportBlock(dataMonths)
     initializeModals()
+  }
+
+  if (window.monthsData && typeof window.monthsData === "object") {
+    _initDash()
 
     return;
   }
@@ -30,12 +35,10 @@ window.addEventListener('DOMContentLoaded', function () {
 
       loadYearDataEncrypted(window.definedYear);
 
-      document.getElementById('password-modal').style.display = 'none';
-      document.getElementById('dashboard-main').style.display = 'block';
 
-      initializeMonthSelector(dataMonths);
-      updateDashboard(dataMonths);
-      initializeModals();
+      if (window.monthsData && typeof window.monthsData === "object")
+        _initDash()
+
     } catch (e) {
       document.getElementById('password-error').style.display = 'block';
     }
