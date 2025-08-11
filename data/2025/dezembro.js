@@ -1,1 +1,1 @@
-window._Dezembro2025Encrypted = `U2FsdGVkX18+vg3lJxwC1S/uEdHvRhXhMt+sPNBqGos=`
+window._Dezembro2025Encrypted = `U2FsdGVkX1/4sgKz8fPF8t3NS7HVjX1VHtpLUnhdgv8=`

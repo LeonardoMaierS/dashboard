@@ -83,12 +83,21 @@ function getMonthData(platform) {
       });
 
       const dias = Object.values(historicoDiario);
-      let totalBuscas = 0, buscasComResultado = 0, conversaoSoma = 0, ctrSoma = 0, ticketSoma = 0, vendas = 0, pedidos = 0;
+      let totalBuscas = 0
+      let buscasComResultado = 0
+      let buscasSemResultado = 0
+      let conversaoSoma = 0
+      let ctrSoma = 0
+      let ticketSoma = 0
+      let vendas = 0
+      let pedidos = 0;
 
       dias.forEach(dia => {
         const r = dia.resumoDiario || {};
+
         totalBuscas += Number(r.buscasSemResultado || 0) + Number(r.buscasComResultado || 0);
         buscasComResultado += Number(r.buscasComResultado || 0);
+        buscasSemResultado += Number(r.buscasSemResultado || 0);
         conversaoSoma += Number(r.conversao || 0);
         ctrSoma += Number(r.ctr || 0);
         ticketSoma += Number(r.ticketMedio || 0);
@@ -104,6 +113,7 @@ function getMonthData(platform) {
         historicoDiario,
         totalBuscas,
         buscasComResultado,
+        buscasSemResultado,
         conversao: diasCount ? +(conversaoSoma / diasCount).toFixed(2) : 0,
         ctr: diasCount ? +(ctrSoma / diasCount).toFixed(1) : 0,
         ticketMedio: diasCount ? +(ticketSoma / diasCount).toFixed(2) : 0,

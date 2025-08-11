@@ -1,1 +1,1 @@
-window._Junho2025Encrypted = `U2FsdGVkX19wPEszCU2FwjBNtBVKzcU/+KHKPCNaPNc=`
+window._Junho2025Encrypted = `U2FsdGVkX1/k3BD8dFh+7qWTlgG5utvdViRheEAol4I=`
