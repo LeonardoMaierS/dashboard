@@ -142,8 +142,13 @@ function generateTableHTML(headers, rows) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  if (!(window.monthsData && typeof window.monthsData === "object"))
-    return;
+  const versaoEl = document.getElementById('versao-dash');
+  if (versaoEl) versaoEl.textContent = `Versão ${window.ENV.VERSION}`;
+
+  const ultimaAtualizacaoEl = document.getElementById('ultima-atualizacao-valor');
+  if (ultimaAtualizacaoEl) ultimaAtualizacaoEl.textContent = window.ENV.LAST_UPDATE;
+
+  if (!(window.monthsData && typeof window.monthsData === "object")) return;
 
   initializeMonthSelector();
   initializeModals();
@@ -1595,9 +1600,11 @@ document.getElementById('btnExportReport').addEventListener('click', () => {
 document.getElementById('openExportModal').addEventListener('click', () => {
   document.getElementById('exportModal').style.display = 'block';
 });
+
 document.getElementById('closeExportModal').addEventListener('click', () => {
   document.getElementById('exportModal').style.display = 'none';
 });
+
 window.addEventListener('click', (e) => {
   if (e.target.id === 'exportModal') {
     document.getElementById('exportModal').style.display = 'none';
