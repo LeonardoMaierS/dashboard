@@ -1,1 +1,0 @@
-window._Novembro2025Encrypted = `U2FsdGVkX193Uo415SklLIayJHSN3VemrZ21tmUUGIg=`

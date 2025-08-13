@@ -883,7 +883,6 @@ function renderPieDistribuicaoTop10BuscasComResultado(monthId, month) {
       labels,
       datasets: [{
         data: values,
-        // Aplica transparência às cores e deslocamento em hover
         backgroundColor: CHART_COLORS.map(c => hexToRgba(c, 0.7)),
         borderWidth: 2,
         borderColor: BORDER_COLOR,
@@ -915,7 +914,6 @@ function renderPieDistribuicaoTop10BuscasSemVendas(monthId, month) {
 
   destroyMonthlyChart(chartId);
 
-  // Agrupar e somar buscas por termo
   const agregados = {};
 
   // Percorre os dias e registra buscas e se teve venda

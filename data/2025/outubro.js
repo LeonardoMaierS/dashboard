@@ -1,1 +1,0 @@
-window._Outubro2025Encrypted = `U2FsdGVkX18Of0LUBVmvsffiJDF1YpEMMb2eMpL2E7Y=`
