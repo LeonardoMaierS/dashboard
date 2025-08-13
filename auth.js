@@ -12,7 +12,7 @@ window.addEventListener('DOMContentLoaded', function () {
       <div id="password-modal" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999;padding:24px">
         <div style="width:min(92vw,380px);background:linear-gradient(180deg,#14323a,#1b3c45);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.45);padding:28px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-            <i aria-hidden="true"><img src="./assets/logo.svg" alt="Logo" style="width:18px;height:18px;display:block;opacity:.9"></i>
+            <i aria-hidden="true"><img src="./assets/icons/favicon.png" alt="Logo" style="width:18px;height:18px;display:block;opacity:.9"></i>
             <div style="display:flex;flex-direction:column">
               <span style="color:#eaf7fb;font-weight:800;font-size:18px;margin:0 0 6px">Acesso ao Dashboard</span>
               <span style="color:#9cc7d1;font-size:13px">Digite a senha para carregar os dados</span>
