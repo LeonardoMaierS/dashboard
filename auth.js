@@ -1,9 +1,6 @@
 // auth.js — exibe modal, valida no backend e só então carrega dados
 window.addEventListener('DOMContentLoaded', function () {
-  const API_BASE =
-    (window.__ENV && (window.__ENV.API_BASE || window.__ENV.DATA_BASE_URL)) ||
-    window.DATA_BASE_URL ||
-    "https://dash-backend-825443863721.us-central1.run.app";
+  const API_BASE = "https://dashboard-backend-800375288267.us-central1.run.app";
 
   // ===== Insere modal de senha (caso não exista no HTML) =====
   if (!document.getElementById('password-modal')) {
@@ -28,8 +25,10 @@ window.addEventListener('DOMContentLoaded', function () {
 
   function startUI() {
     const dataMonths = getMonthData();
+
     document.getElementById('password-modal').style.display = 'none';
     document.getElementById('dashboard-main').style.display = 'block';
+
     initializeMonthSelector(dataMonths);
     updateDashboard(dataMonths);
     initializeExportBlock(dataMonths);
@@ -50,7 +49,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
     try {
       // 1) valida no backend
-      const res = await fetch(`${API_BASE}/auth`, {
+      const res = await fetch(`${API_BASE}/files`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: pwd })
@@ -72,7 +71,7 @@ window.addEventListener('DOMContentLoaded', function () {
       await window.loadYearEncryptedScripts(window.definedYear);
 
       // 4) define chave de decriptação a partir do input
-      window._dashboardPassword = pwd;
+      window._dashboardPassword = `${pwd}${pwd.slice(0, -2)}`;
 
       // 5) monta window.monthsData a partir dos .js carregados
       loadYearDataEncrypted(window.definedYear);
