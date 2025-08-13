@@ -5,7 +5,6 @@ const MONTHS = [
 
 function loadYearDataEncrypted() {
   window.monthsData = {}
-
   MONTHS.forEach(function (month) {
     loadEncryptedMonth(month);
   });
@@ -18,29 +17,15 @@ function loadEncryptedMonth(month) {
     const encData = window[key];
     let emptyMonth = {
       [`${month}${year}`]: {
-        mobile: {
-          name: month,
-          year: year,
-          available: false,
-          historicoDiario: {}
-        },
-        desktop: {
-          name: month,
-          year: year,
-          available: false,
-          historicoDiario: {}
-        }
+        mobile: { name: month, year: year, available: false, historicoDiario: {} },
+        desktop: { name: month, year: year, available: false, historicoDiario: {} }
       }
     }
 
     if (encData) {
       const decrypted = CryptoJS.AES.decrypt(encData, window._dashboardPassword).toString(CryptoJS.enc.Utf8);
       const decryptedParse = JSON.parse(decrypted);
-
-      // Verifica se tem conteudo dentro dos dados descriptografados
-      // e caso tenha dados faltando de alguma plataforma recebe dados em branco
-      if (Object.keys(decryptedParse).length > 0)
-        emptyMonth = { [`${month}${year}`]: decryptedParse }
+      if (Object.keys(decryptedParse).length > 0) emptyMonth = { [`${month}${year}`]: decryptedParse }
     }
 
     window.monthsData = { ...window.monthsData, ...emptyMonth }
@@ -49,4 +34,3 @@ function loadEncryptedMonth(month) {
     throw error;
   }
 }
-
