@@ -1,8 +1,9 @@
 window.addEventListener('DOMContentLoaded', function () {
   const API_BASE = window.ENV.REMOTE_BASE_URL;
-  const CONCURRENCY = 6;
   const CACHE_NS = "dash:v1";
   const MONTH_SLUGS = ["janeiro","fevereiro","marco","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const SLUG_TO_FULL = { janeiro:"Janeiro", fevereiro:"Fevereiro", marco:"Março", abril:"Abril", maio:"Maio", junho:"Junho", julho:"Julho", agosto:"Agosto", setembro:"Setembro", outubro:"Outubro", novembro:"Novembro", dezembro:"Dezembro" };
+  const injectedSids = new Set();
 
   ensurePasswordModal();
 
@@ -12,8 +13,8 @@ window.addEventListener('DOMContentLoaded', function () {
       <div id="password-modal" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999;padding:24px">
         <div style="width:min(92vw,380px);background:linear-gradient(180deg,#14323a,#1b3c45);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.45);padding:28px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-            <i aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4.5v9L12 21 4 16.5v-9L12 3Z" stroke="#8fd6e5" stroke-width="1.4"/></svg>
+            <i aria-hidden="true" style="width:32px;height:32px;border-radius:8px;background:#19414a;display:inline-flex;align-items:center;justify-content:center">
+              <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 3l8 4.5v9L12 21 4 16.5v-9L12 3Z" stroke="#8fd6e5" stroke-width="1.4"/></svg>
             </i>
             <div style="display:flex;flex-direction:column">
               <span style="color:#eaf7fb;font-weight:800;font-size:18px;margin:0 0 6px">Acesso ao Dashboard</span>
@@ -44,10 +45,10 @@ window.addEventListener('DOMContentLoaded', function () {
     overlay.style.display = on ? 'flex' : 'none';
   }
 
-  // ---------- Cache ----------
+  // ===== Cache =====
   const LS = {
     get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
-    set(k,v){ try{ localStorage.setItem(k, v); }catch(e){ /* quota */ } },
+    set(k,v){ try{ localStorage.setItem(k, v); }catch(e){ } },
     del(k){ try{ localStorage.removeItem(k); }catch(e){ } },
     keys(){ try{ return Object.keys(localStorage); }catch(e){ return []; } }
   };
@@ -64,7 +65,7 @@ window.addEventListener('DOMContentLoaded', function () {
     LS.keys().forEach(k=>{ if(k.startsWith(`${CACHE_NS}:`)) LS.del(k); });
   }
 
-  // ---------- Network ----------
+  // ===== Network =====
   async function fetchMonth(password, year, monthSlug, etag){
     const headers = { 'Content-Type': 'application/json' };
     if (etag) headers['If-None-Match'] = etag;
@@ -73,16 +74,17 @@ window.addEventListener('DOMContentLoaded', function () {
       headers,
       body: JSON.stringify({ password })
     });
-    if (res.status === 304) {
-      return { status: 304, etag: etag || null, data: null };
+    if (res.status === 304) return { ok: true, status: 304, etag: etag || null, data: null };
+    if (!res.ok) {
+      const text = await res.text().catch(()=> '');
+      return { ok: false, status: res.status, error: text || `HTTP ${res.status}` };
     }
-    if (!res.ok) throw new Error(`HTTP ${res.status} ${monthSlug}`);
     const et = res.headers.get('ETag') || null;
-    const j = await res.json(); // { content, path }
-    return { status: 200, etag: et, data: j };
+    const j = await res.json();
+    return { ok: true, status: 200, etag: et, data: j };
   }
 
-  // ---------- Script injection ----------
+  // ===== Script injection =====
   function injectOrReplaceScript(id, code) {
     const old = document.getElementById(id);
     if (old) old.remove();
@@ -92,15 +94,24 @@ window.addEventListener('DOMContentLoaded', function () {
     s.textContent = code;
     (document.head || document.documentElement).appendChild(s);
   }
-
   function injectFromBase64(contentB64, path){
     const clean = (contentB64 || '').replace(/\s+/g,'');
     const decoded = atob(clean);
     const sid = `injected-${(path||'').replace(/[^\w-]/g,'-')}`;
     injectOrReplaceScript(sid, decoded);
+    injectedSids.add(sid);
+  }
+  function rollbackInjected(year){
+    injectedSids.forEach(id=>{ const el = document.getElementById(id); if (el) el.remove(); });
+    injectedSids.clear();
+    Object.entries(SLUG_TO_FULL).forEach(([slug, full])=>{
+      const key = `_${full}${year}Encrypted`;
+      try { delete window[key]; } catch(e){}
+    });
+    try { delete window.monthsData; } catch(e){}
   }
 
-  // ---------- Pipeline por mês ----------
+  // ===== Pipeline por mês (cache-first, mas não autoriza sessão) =====
   async function loadMonthWithCache(password, year, slug){
     const kB = keyB64(year, slug);
     const kM = keyMeta(year, slug);
@@ -109,64 +120,54 @@ window.addEventListener('DOMContentLoaded', function () {
     let meta = null;
     try { meta = metaRaw ? JSON.parse(metaRaw) : null; } catch { meta = null; }
 
-    // 1) Cache-first: se existe, injeta já
     if (cachedB64) {
       injectFromBase64(cachedB64, meta?.path || `data/${year}/${slug}.js`);
     }
 
-    // 2) Revalidação/Download
-    try {
-      const { status, etag, data } = await fetchMonth(password, year, slug, meta?.etag);
-      if (status === 304) {
-        return { slug, from: cachedB64 ? 'cache' : 'network-304' };
-      }
-
-      if (data?.content) {
-        // salva cache
-        LS.set(kB, data.content);
-        LS.set(kM, JSON.stringify({
-          path: data.path || `data/${year}/${slug}.js`,
-          etag: etag || null,
-          tsCached: Date.now()
-        }));
-
-        // reinjeta atualizado (substitui se já existia)
-        injectFromBase64(data.content, data.path);
-        return { slug, from: cachedB64 ? 'updated' : 'network' };
-      }
-      return { slug, from: 'empty' };
-    } catch (e) {
-      // Se falhar e já tínhamos cache, mantemos o que foi injetado
-      if (cachedB64) return { slug, from: 'cache-fallback', err: String(e) };
-      throw e;
+    const r = await fetchMonth(password, year, slug, meta?.etag);
+    if (!r.ok) {
+      if (!cachedB64) throw new Error(`month ${slug}: ${r.error || r.status}`);
+      return { slug, source: 'cache-fallback', networkOk: false, status: r.status };
     }
+    if (r.status === 304) {
+      return { slug, source: cachedB64 ? 'cache' : 'network-304', networkOk: false, status: 304 };
+    }
+    const data = r.data;
+    if (data?.content) {
+      LS.set(kB, data.content);
+      LS.set(kM, JSON.stringify({
+        path: data.path || `data/${year}/${slug}.js`,
+        etag: r.etag || null,
+        tsCached: Date.now()
+      }));
+      injectFromBase64(data.content, data.path);
+      return { slug, source: cachedB64 ? 'updated' : 'network', networkOk: true, status: 200 };
+    }
+    return { slug, source: 'empty', networkOk: false, status: 200 };
   }
 
-  // ---------- Paralelismo controlado ----------
-  async function parallelLoadYear(password, year){
-    const order = MONTH_SLUGS.map((slug, idx) => ({ slug, prio: 11 - idx }))
-                             .sort((a,b)=>a.prio-b.prio);
-    const queue = order.slice();
-    const inflight = new Set();
+  // ===== 12 requisições ao mesmo tempo =====
+  async function loadYearAllAtOnce(password, year){
+    const promises = MONTH_SLUGS.map(slug =>
+      loadMonthWithCache(password, year, slug)
+        .then(r => ({ ok:true, r }))
+        .catch(err => ({ ok:false, err:String(err), slug }))
+    );
+    const settled = await Promise.all(promises);
+    let networkSuccess = 0;
     const results = [];
-
-    return new Promise((resolve, reject) => {
-      const next = () => {
-        if (results.length === order.length) return resolve(results);
-        while (inflight.size < CONCURRENCY && queue.length){
-          const { slug } = queue.shift();
-          const p = loadMonthWithCache(password, year, slug)
-            .then(r => { results.push(r); })
-            .catch(err => { results.push({ slug, from:'error', err:String(err) }); })
-            .finally(() => { inflight.delete(p); next(); });
-          inflight.add(p);
-        }
-      };
-      next();
-    });
+    for (const it of settled){
+      if (it.ok) {
+        results.push(it.r);
+        if (it.r.networkOk) networkSuccess += 1;
+      } else {
+        results.push({ slug: it.slug, source:'error', networkOk:false, err: it.err });
+      }
+    }
+    return { results, networkSuccess };
   }
 
-  // ---------- Boot ----------
+  // ===== Boot =====
   function startUI(){
     const modal = document.getElementById('password-modal'); if (modal) modal.style.display='none';
     const main = document.getElementById('dashboard-main'); if (main) main.style.display='block';
@@ -186,7 +187,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
     try{
       setLoading(true);
-      // invalida cache se senha mudou
+
       const newHash = await sha256Hex(pwd);
       const prevHash = LS.get(keyPass());
       if (prevHash && prevHash !== newHash) clearNamespace();
@@ -196,7 +197,13 @@ window.addEventListener('DOMContentLoaded', function () {
       window.definedYear = year;
       window._dashboardPassword = `${pwd}${pwd.slice(0, -2)}`;
 
-      await parallelLoadYear(pwd, year);
+      const { results, networkSuccess } = await loadYearAllAtOnce(pwd, year);
+
+      if (networkSuccess === 0) {
+        rollbackInjected(year);
+        throw new Error('invalid_password_or_origin');
+      }
+
       loadYearDataEncrypted(year);
       if (!window.monthsData || typeof window.monthsData!=='object') throw new Error('monthsData vazio');
 
@@ -204,8 +211,9 @@ window.addEventListener('DOMContentLoaded', function () {
       startUI();
     } catch(e){
       console.error(e);
+      const errEl = document.getElementById('password-error');
       errEl.style.display='block';
-      errEl.textContent='Falha ao carregar os dados.';
+      errEl.textContent='Senha inválida ou origem não permitida.';
     } finally {
       setLoading(false);
     }

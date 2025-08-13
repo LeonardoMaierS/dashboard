@@ -1633,10 +1633,6 @@ canvas {
     padding: 18px 4px;
   }
 
-  .kpi-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
   .modern-table,
   .table-container {
     font-size: 12px;
