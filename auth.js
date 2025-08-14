@@ -1,13 +1,11 @@
 window.addEventListener('DOMContentLoaded', function () {
-  // ===== Config =====
   const API_BASE = window.ENV.REMOTE_BASE_URL;
   const CACHE_NS = "dash:v1";
   const MONTH_SLUGS = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
   const SLUG_TO_FULL = { janeiro: "Janeiro", fevereiro: "Fevereiro", marco: "Março", abril: "Abril", maio: "Maio", junho: "Junho", julho: "Julho", agosto: "Agosto", setembro: "Setembro", outubro: "Outubro", novembro: "Novembro", dezembro: "Dezembro" };
   const injectedSids = new Set();
-  let BEARER = null; // token após /auth
+  let BEARER = null;
 
-  // ===== UI: Modal Senha =====
   ensurePasswordModal();
   function ensurePasswordModal() {
     if (document.getElementById('password-modal')) return;
@@ -43,7 +41,7 @@ window.addEventListener('DOMContentLoaded', function () {
   }
   function setLoading(on) { const o = document.getElementById('global-loader'); if (o) o.style.display = on ? 'flex' : 'none'; }
 
-  // ===== Utils: Cache + Hash =====
+  // Cache + Hash
   const LS = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch { } },
@@ -73,8 +71,6 @@ window.addEventListener('DOMContentLoaded', function () {
     if (!j.token) throw new Error('AUTH_NO_TOKEN');
 
     BEARER = j.token;
-
-    startUI();
   }
 
   async function fetchMonth(year, monthSlug, etag) {
@@ -95,7 +91,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
     const et = res.headers.get('ETag') || null;
 
-    const j = await res.json(); // {content, path}
+    const j = await res.json();
 
     return { ok: true, status: 200, etag: et, data: j };
   }
@@ -230,7 +226,6 @@ window.addEventListener('DOMContentLoaded', function () {
       if (prevHash && prevHash !== newHash) clearNamespace();
       LS.set(keyPass(), newHash);
 
-      // 3) carrega meses (somente até o mês atual) — habilita botões conforme chegam
       const year = new Date().getFullYear();
       window.definedYear = year;
 
@@ -242,17 +237,15 @@ window.addEventListener('DOMContentLoaded', function () {
         throw new Error('invalid_password_or_origin');
       }
 
-      // 4) garantir CryptoJS e montar dados
+      // 4) garantir CryptoJS
       await ensureCryptoJS();
-      if (monthsCount > 0) loadYearDataEncrypted();
-      else window.monthsData = window.monthsData || {};
 
       passEl.value = '';
       startUI();
     } catch (e) {
       console.error(e);
       errEl.style.display = 'block';
-      errEl.textContent = 'Senha inválida ou origem não permitida.';
+      errEl.textContent = 'Senha inválida.';
     } finally {
       setLoading(false);
     }
