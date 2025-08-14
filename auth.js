@@ -2,7 +2,6 @@ window.addEventListener('DOMContentLoaded', function () {
   const API_BASE = window.ENV.REMOTE_BASE_URL;
   const CACHE_NS = "dash:v1";
   const MONTH_SLUGS = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-  const SLUG_TO_FULL = { janeiro: "Janeiro", fevereiro: "Fevereiro", marco: "Março", abril: "Abril", maio: "Maio", junho: "Junho", julho: "Julho", agosto: "Agosto", setembro: "Setembro", outubro: "Outubro", novembro: "Novembro", dezembro: "Dezembro" };
   const injectedSids = new Set();
   let BEARER = null;
 
@@ -87,12 +86,12 @@ window.addEventListener('DOMContentLoaded', function () {
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleEnter(); });;
   }
 
-  function setLoading(state){
+  function setLoading(state) {
     const btn = document.getElementById('password-btn');
     const input = document.getElementById('site-password');
     const overlay = document.getElementById('global-loader');
 
-    if (state){
+    if (state) {
       btn.classList.add('loading');
       btn.disabled = true;
       input.disabled = true;
@@ -112,11 +111,24 @@ window.addEventListener('DOMContentLoaded', function () {
     del(k) { try { localStorage.removeItem(k); } catch { } },
     keys() { try { return Object.keys(localStorage); } catch { return []; } }
   };
+
   const keyB64 = (y, slug) => `${CACHE_NS}:${y}:${slug}:b64`;
   const keyMeta = (y, slug) => `${CACHE_NS}:${y}:${slug}:meta`;
   const keyPass = () => `${CACHE_NS}:lastPassHash`;
-  async function sha256Hex(t) { const e = new TextEncoder().encode(t); const b = await crypto.subtle.digest('SHA-256', e); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
-  function clearNamespace() { LS.keys().forEach(k => { if (k.startsWith(`${CACHE_NS}:`)) LS.del(k); }); }
+
+  async function sha256Hex(t) {
+    const e = new TextEncoder().encode(t);
+    const b = await crypto.subtle.digest('SHA-256', e);
+
+    return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
+  }
+
+  function clearNamespace() {
+    LS.keys().forEach(k => {
+      if (k.startsWith(`${CACHE_NS}:`))
+        LS.del(k);
+    });
+  }
 
   async function auth(password) {
     const res = await fetch(`${API_BASE}/auth`, {
@@ -137,19 +149,20 @@ window.addEventListener('DOMContentLoaded', function () {
     BEARER = j.token;
   }
 
-  async function fetchMonth(year, monthSlug, etag) {
+  async function fetchMonth(year, month, etag) {
     const headers = { 'Content-Type': 'application/json' };
 
     if (BEARER) headers['Authorization'] = `Bearer ${BEARER}`;
 
     if (etag) headers['If-None-Match'] = etag;
 
-    const res = await fetch(`${API_BASE}/files/${year}/${monthSlug}`, { method: 'POST', headers, body: '{}' });
+    const res = await fetch(`${API_BASE}/files/${year}/${month}`, { method: 'POST', headers, body: '{}' });
 
     if (res.status === 304) return { ok: true, status: 304, etag: etag || null, data: null };
 
     if (!res.ok) {
       const txt = await res.text().catch(() => '');
+
       return { ok: false, status: res.status, error: txt || `HTTP ${res.status}` };
     }
 
@@ -191,96 +204,80 @@ window.addEventListener('DOMContentLoaded', function () {
     injectOrReplaceScript(sid, decoded); injectedSids.add(sid);
   }
 
-  function rollbackInjected(year) {
-    injectedSids.forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
-    injectedSids.clear();
-
-    Object.entries(SLUG_TO_FULL).forEach(([slug, full]) => { const key = `_${full}${year}Encrypted`; try { delete window[key]; } catch { } });
-
-    try { delete window.monthsData; } catch { }
-  }
-
-  // ===== UI: habilita botão do mês quando disponível ===== TODO - remover
-  function onMonthReady(slug) {
-    const btn = document.querySelector(`[data-month="${slug}"]`);
-
-    if (btn) { btn.disabled = false; btn.classList.remove('is-loading', 'is-disabled'); }
-
-    if (typeof markMonthAsReady === 'function') markMonthAsReady(slug);
-  }
-
   // ===== Pipeline por mês (cache-first seguro; cache não autoriza) =====
-  async function loadMonthWithCache(year, slug) {
-    const kB = keyB64(year, slug);
-    const kM = keyMeta(year, slug);
+  async function loadMonthWithCache(year, month) {
+    const kB = keyB64(year, month);
+    const kM = keyMeta(year, month);
     const cachedB64 = LS.get(kB);
     const metaRaw = LS.get(kM);
     let meta = null; try { meta = metaRaw ? JSON.parse(metaRaw) : null; } catch { }
 
-    if (cachedB64) { injectFromBase64(cachedB64, meta?.path || `data/${year}/${slug}.js`); onMonthReady(slug); }
-
-    const r = await fetchMonth(year, slug, meta?.etag);
-
-    if (!r.ok) {
-      if (!cachedB64) throw new Error(`month ${slug}: ${r.error || r.status}`);
-
-      return { slug, networkOk: false, source: 'cache-fallback' };
+    if (cachedB64) {
+      injectFromBase64(cachedB64, meta?.path || `data/${year}/${month}.js`);
     }
 
-    if (r.status === 304) return { slug, networkOk: false, source: 'cache' };
+    const r = await fetchMonth(year, month, meta?.etag);
+
+    if (!r.ok) {
+      if (!cachedB64)
+        throw new Error(`month ${month}: ${r.error || r.status}`);
+
+      return { month, networkOk: false, source: 'cache-fallback' };
+    }
+
+    if (r.status === 304) {
+      return { month, networkOk: false, source: 'cache' };
+    }
 
     if (r.data?.content) {
       LS.set(kB, r.data.content);
-      LS.set(kM, JSON.stringify({ path: r.data.path || `data/${year}/${slug}.js`, etag: r.etag || null, tsCached: Date.now() }));
+      LS.set(kM, JSON.stringify({ path: r.data.path || `data/${year}/${month}.js`, etag: r.etag || null, tsCached: Date.now() }));
       injectFromBase64(r.data.content, r.data.path);
-      onMonthReady(slug);
 
       startUI()
 
-      return { slug, networkOk: true, source: cachedB64 ? 'updated' : 'network' };
+      return { month, networkOk: true, source: cachedB64 ? 'updated' : 'network' };
     }
 
-    return { slug, networkOk: false, source: 'empty' };
+    return { month, networkOk: false, source: 'empty' };
   }
 
   // ===== Seleção de meses (não além do mês atual) =====
   function monthsForYear(year) {
-    const now = new Date(); const yNow = now.getFullYear(); const mNow = now.getMonth(); // 0..11
-    if (year < yNow) return MONTH_SLUGS.slice();
-    if (year > yNow) return [];
+    const now = new Date();
+    const yNow = now.getFullYear();
+    const mNow = now.getMonth();
+
+    if (year < yNow)
+      return MONTH_SLUGS.slice();
+
+    if (year > yNow)
+      return [];
+
     return MONTH_SLUGS.slice(0, mNow + 1);
   }
 
-  // ===== Carregamento paralelo (12 de uma vez no ano vigente) =====
+  // ===== Carregamento paralelo =====
   async function loadYearAllAtOnce(year) {
     const months = monthsForYear(year);
     let contHeaderLoader = months.length
 
     initHeaderLoader(contHeaderLoader);
 
-    const promises = months.map(slug =>
-      loadMonthWithCache(year, slug)
+    const promises = months.map(month =>
+      loadMonthWithCache(year, month)
         .then(r => {
           contHeaderLoader -= 1
           initHeaderLoader(contHeaderLoader);
-          return { ok: true, r }
         })
         .catch(err => {
           contHeaderLoader -= 1
           initHeaderLoader(contHeaderLoader);
-          return { ok: false, slug, err: String(err) }
+          console.error(err)
         })
     );
 
-    const settled = await Promise.all(promises);
-
-    let networkSuccess = 0;
-
-    for (const it of settled) {
-      if (it.ok && it.r.networkOk) networkSuccess++;
-    }
-
-    return { networkSuccess, monthsCount: months.length };
+    await Promise.all(promises);
   }
 
   // --- header loader controller ---
@@ -341,15 +338,9 @@ window.addEventListener('DOMContentLoaded', function () {
       const year = new Date().getFullYear();
       window.definedYear = year;
 
-      const { networkSuccess, monthsCount } = await loadYearAllAtOnce(year);
+      await loadYearAllAtOnce(year);
 
-      // exige pelo menos 1 200 OK quando houver meses a carregar
-      if (monthsCount > 0 && networkSuccess === 0) {
-        rollbackInjected(year);
-        throw new Error('invalid_password_or_origin');
-      }
-
-      // 4) garantir CryptoJS
+      // garantir CryptoJS
       await ensureCryptoJS();
 
       passEl.value = '';
