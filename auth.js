@@ -262,44 +262,25 @@ window.addEventListener('DOMContentLoaded', function () {
     const months = monthsForYear(year);
     let contHeaderLoader = months.length
 
-    initHeaderLoader(contHeaderLoader);
-
     const promises = months.map(month =>
       loadMonthWithCache(year, month)
-        .then(r => {
+        .then(() => {
           contHeaderLoader -= 1
-          initHeaderLoader(contHeaderLoader);
         })
         .catch(err => {
           contHeaderLoader -= 1
-          initHeaderLoader(contHeaderLoader);
           console.error(err)
         })
     );
 
     await Promise.all(promises);
-  }
+  
+    const el = document.getElementById('header-loader');
 
-  // --- header loader controller ---
-  (function () {
-    let _pending = 0;
-    window.initHeaderLoader = function (total = 12) {
-      _pending = Math.max(0, total | 0);
-      const el = document.getElementById('header-loader');
-      if (!el) return;
-      el.style.display = _pending > 0 ? 'inline-flex' : 'none';
-      el.setAttribute('aria-busy', String(_pending > 0));
-    };
-    window.headerLoaderStep = function () {
-      const el = document.getElementById('header-loader');
-      if (!el) return;
-      _pending = Math.max(0, _pending - 1);
-      if (_pending === 0) {
-        el.style.display = 'none';
-        el.setAttribute('aria-busy', 'false');
-      }
-    };
-  })();
+    if (!el) return; 
+
+    el.style.display = contHeaderLoader > 0 ? 'inline-flex' : 'none';
+  }
 
   function startUI() {
     const dataMonths = getMonthData();
