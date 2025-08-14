@@ -65,28 +65,42 @@ window.addEventListener('DOMContentLoaded', function () {
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ password })
     });
+
     if (!res.ok) {
       const txt = await res.text().catch(()=> '');
       throw new Error(`AUTH_${res.status}:${txt}`);
     }
+
     const j = await res.json();
+
     if (!j.token) throw new Error('AUTH_NO_TOKEN');
+
     BEARER = j.token;
+
+    startUI();
   }
 
   // ===== Network (/files/<y>/<m>) =====
   async function fetchMonth(year, monthSlug, etag){
     const headers = { 'Content-Type': 'application/json' };
+
     if (BEARER) headers['Authorization'] = `Bearer ${BEARER}`;
+
     if (etag) headers['If-None-Match'] = etag;
+
     const res = await fetch(`${API_BASE}/files/${year}/${monthSlug}`, { method:'POST', headers, body: '{}' });
+
     if (res.status === 304) return { ok:true, status:304, etag: etag||null, data:null };
+
     if (!res.ok) {
       const txt = await res.text().catch(()=> '');
       return { ok:false, status:res.status, error: txt || `HTTP ${res.status}` };
     }
+
     const et = res.headers.get('ETag') || null;
+
     const j = await res.json(); // {content, path}
+
     return { ok:true, status:200, etag: et, data: j };
   }
 
@@ -131,10 +145,13 @@ window.addEventListener('DOMContentLoaded', function () {
 
     // baixa / revalida
     const r = await fetchMonth(year, slug, meta?.etag);
+
     if (!r.ok) {
       if (!cachedB64) throw new Error(`month ${slug}: ${r.error || r.status}`);
+
       return { slug, networkOk:false, source:'cache-fallback' };
     }
+
     if (r.status === 304) return { slug, networkOk:false, source:'cache' };
 
     if (r.data?.content) {
@@ -142,8 +159,12 @@ window.addEventListener('DOMContentLoaded', function () {
       LS.set(kM, JSON.stringify({ path: r.data.path || `data/${year}/${slug}.js`, etag: r.etag || null, tsCached: Date.now() }));
       injectFromBase64(r.data.content, r.data.path);
       onMonthReady(slug);
+
+      startUI()
+
       return { slug, networkOk:true, source: cachedB64 ? 'updated' : 'network' };
     }
+
     return { slug, networkOk:false, source:'empty' };
   }
 
@@ -158,14 +179,21 @@ window.addEventListener('DOMContentLoaded', function () {
   // ===== Carregamento paralelo (12 de uma vez no ano vigente) =====
   async function loadYearAllAtOnce(year){
     const months = monthsForYear(year);
+
     const promises = months.map(slug =>
-      loadMonthWithCache(year, slug).then(r=>({ok:true,r})).catch(err=>({ok:false,slug,err:String(err)}))
+      loadMonthWithCache(year, slug)
+      .then(r=>({ok:true,r}))
+      .catch(err=>({ok:false,slug,err:String(err)}))
     );
+
     const settled = await Promise.all(promises);
+
     let networkSuccess = 0;
+
     for (const it of settled){
       if (it.ok && it.r.networkOk) networkSuccess++;
     }
+
     return { networkSuccess, monthsCount: months.length };
   }
 
@@ -183,7 +211,9 @@ window.addEventListener('DOMContentLoaded', function () {
   function startUI(){
     const modal = document.getElementById('password-modal'); if (modal) modal.style.display='none';
     const main = document.getElementById('dashboard-main'); if (main) main.style.display='block';
+    
     const dataMonths = (typeof getMonthData==='function') ? getMonthData() : (window.monthsData||{});
+
     if (typeof initializeMonthSelector==='function') initializeMonthSelector(dataMonths);
     if (typeof updateDashboard==='function') updateDashboard(dataMonths);
     if (typeof initializeExportBlock==='function') initializeExportBlock(dataMonths);
