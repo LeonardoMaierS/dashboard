@@ -192,7 +192,7 @@ window.addEventListener('DOMContentLoaded', function () {
   // ===== Carregamento paralelo (12 de uma vez no ano vigente) =====
   async function loadYearAllAtOnce(year) {
     const months = monthsForYear(year);
-    let contHeaderLoader = months.length
+    let contHeaderLoader = 15 // months.length
 
     initHeaderLoader(contHeaderLoader);
 
