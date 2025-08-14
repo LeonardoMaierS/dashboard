@@ -1479,6 +1479,8 @@ document.querySelectorAll('.custom-select').forEach((select) => {
 
       if (select.id === 'platformCustomSelect') {
         document.getElementById('selected-months-blocks').innerHTML = ''
+        window.definedYear = option.getAttribute('data-value')
+        loadYearDataEncrypted(window.definedYear)
 
         selectedMonths = []
         initializeMonthSelector()

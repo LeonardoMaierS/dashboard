@@ -3,16 +3,16 @@ const MONTHS = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ];
 
-function loadYearDataEncrypted() {
-  window.monthsData = {}
-  MONTHS.forEach(function (month) {
-    loadEncryptedMonth(month);
-  });
+function loadYearDataEncrypted(year) {
+  window.monthsData = window.monthsData ?? {}
+
+  MONTHS.forEach(month => { 
+    loadEncryptedMonth(month, year ?? window.definedYear);
+  });      
 }
 
-function loadEncryptedMonth(month) {
-  try {
-    const year = window.definedYear
+function loadEncryptedMonth(month, year ) {
+  try {    
     const key = month === 'Março' ? `_Marco${year}Encrypted` : `_${month}${year}Encrypted`;
     const encData = window[key];
     let emptyMonth = {

@@ -178,18 +178,6 @@ window.addEventListener('DOMContentLoaded', function () {
       return txt || null;
     }catch{ return null; }
   }
-  function loadYearDataEncrypted(year){
-    const map = {};
-    for (const [slug, Full] of Object.entries(SLUG_TO_FULL)){
-      const key = `_${Full}${year}Encrypted`;
-      const enc = window[key];
-      if (!enc) continue;
-      const dec = safeDecrypt(enc, window._dashboardPassword);
-      if (!dec) continue;
-      try{ map[slug] = JSON.parse(dec); }catch{}
-    }
-    window.monthsData = map;
-  }
 
   // ===== Boot/UI =====
   function startUI(){
