@@ -274,12 +274,14 @@ window.addEventListener('DOMContentLoaded', function () {
     );
 
     await Promise.all(promises);
-  
+
     const el = document.getElementById('header-loader');
 
-    if (!el) return; 
+    if (!el)
+      return;
 
-    el.style.display = contHeaderLoader > 0 ? 'inline-flex' : 'none';
+    if (contHeaderLoader === 0)
+      el.style.display = 'none';
   }
 
   function startUI() {
