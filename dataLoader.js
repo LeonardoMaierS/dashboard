@@ -18,6 +18,10 @@ function loadEncryptedMonth(month, year ) {
   try {    
     const key = month === 'Março' ? `_Marco${year}Encrypted` : `_${month}${year}Encrypted`;
     const encData = window[key];
+
+    // Caso ja tenha os dados do mes não precisa seguir
+    if(window.monthsData[`${month}${year}`]?.available) return
+
     let emptyMonth = {
       [`${month}${year}`]: {
         mobile: { name: month, year: year, available: false, historicoDiario: {} },
