@@ -1,12 +1,14 @@
+// auth.js — autentica, carrega meses progressivamente e só até o mês atual
 window.addEventListener('DOMContentLoaded', function () {
   const API_BASE = window.ENV.REMOTE_BASE_URL;
   const CACHE_NS = "dash:v1";
-  const MONTH_SLUGS = ["janeiro","fevereiro","marco","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
-  const SLUG_TO_FULL = { janeiro:"Janeiro", fevereiro:"Fevereiro", marco:"Março", abril:"Abril", maio:"Maio", junho:"Junho", julho:"Julho", agosto:"Agosto", setembro:"Setembro", outubro:"Outubro", novembro:"Novembro", dezembro:"Dezembro" };
+  const MONTH_SLUGS = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+  const SLUG_TO_FULL = { janeiro: "Janeiro", fevereiro: "Fevereiro", marco: "Março", abril: "Abril", maio: "Maio", junho: "Junho", julho: "Julho", agosto: "Agosto", setembro: "Setembro", outubro: "Outubro", novembro: "Novembro", dezembro: "Dezembro" };
   const injectedSids = new Set();
+  let BEARER = null; // token após /auth
 
+  // ---- UI senha (mantive seu layout/ícone inline) ----
   ensurePasswordModal();
-
   function ensurePasswordModal() {
     if (document.getElementById('password-modal')) return;
     document.body.insertAdjacentHTML('beforeend', `
@@ -37,183 +39,178 @@ window.addEventListener('DOMContentLoaded', function () {
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     `);
     document.getElementById('password-btn').onclick = handleEnter;
-    document.getElementById('site-password').addEventListener('keydown', (e)=>{ if(e.key==='Enter') handleEnter(); });
+    document.getElementById('site-password').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleEnter(); });
   }
-  function setLoading(on){
-    const overlay = document.getElementById('global-loader');
-    if (!overlay) return;
-    overlay.style.display = on ? 'flex' : 'none';
-  }
+  function setLoading(on) { const o = document.getElementById('global-loader'); if (o) o.style.display = on ? 'flex' : 'none'; }
 
-  // ===== Cache =====
+  // ---- Cache ----
   const LS = {
-    get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
-    set(k,v){ try{ localStorage.setItem(k, v); }catch(e){ } },
-    del(k){ try{ localStorage.removeItem(k); }catch(e){ } },
-    keys(){ try{ return Object.keys(localStorage); }catch(e){ return []; } }
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { } },
+    del(k) { try { localStorage.removeItem(k); } catch { } },
+    keys() { try { return Object.keys(localStorage); } catch { return []; } }
   };
-  const keyB64  = (y,slug)=>`${CACHE_NS}:${y}:${slug}:b64`;
-  const keyMeta = (y,slug)=>`${CACHE_NS}:${y}:${slug}:meta`;
-  const keyPass = ()=>`${CACHE_NS}:lastPassHash`;
+  const keyB64 = (y, slug) => `${CACHE_NS}:${y}:${slug}:b64`;
+  const keyMeta = (y, slug) => `${CACHE_NS}:${y}:${slug}:meta`;
+  const keyPass = () => `${CACHE_NS}:lastPassHash`;
+  async function sha256Hex(t) { const e = new TextEncoder().encode(t); const b = await crypto.subtle.digest('SHA-256', e); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
+  function clearNamespace() { LS.keys().forEach(k => { if (k.startsWith(`${CACHE_NS}:`)) LS.del(k); }); }
 
-  async function sha256Hex(text){
-    const enc = new TextEncoder().encode(text);
-    const buf = await crypto.subtle.digest('SHA-256', enc);
-    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  }
-  function clearNamespace(){
-    LS.keys().forEach(k=>{ if(k.startsWith(`${CACHE_NS}:`)) LS.del(k); });
-  }
-
-  // ===== Network =====
-  async function fetchMonth(password, year, monthSlug, etag){
-    const headers = { 'Content-Type': 'application/json' };
-    if (etag) headers['If-None-Match'] = etag;
-    const res = await fetch(`${API_BASE}/files/${year}/${monthSlug}`, {
+  // ---- Auth (/auth) ----
+  async function auth(password) {
+    const res = await fetch(`${API_BASE}/auth`, {
       method: 'POST',
-      headers,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password })
     });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      throw new Error(`AUTH_${res.status}:${txt}`);
+    }
+    const j = await res.json();
+    if (!j.token) throw new Error('AUTH_NO_TOKEN');
+    BEARER = j.token;
+    return true;
+  }
+
+  // ---- Network (/files/<y>/<m>) ----
+  async function fetchMonth(year, monthSlug, etag) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (BEARER) headers['Authorization'] = `Bearer ${BEARER}`;
+    if (etag) headers['If-None-Match'] = etag;
+    const res = await fetch(`${API_BASE}/files/${year}/${monthSlug}`, { method: 'POST', headers, body: '{}' });
     if (res.status === 304) return { ok: true, status: 304, etag: etag || null, data: null };
     if (!res.ok) {
-      const text = await res.text().catch(()=> '');
-      return { ok: false, status: res.status, error: text || `HTTP ${res.status}` };
+      const txt = await res.text().catch(() => '');
+      return { ok: false, status: res.status, error: txt || `HTTP ${res.status}` };
     }
     const et = res.headers.get('ETag') || null;
-    const j = await res.json();
+    const j = await res.json(); // {content, path}
     return { ok: true, status: 200, etag: et, data: j };
   }
 
-  // ===== Script injection =====
-  function injectOrReplaceScript(id, code) {
-    const old = document.getElementById(id);
-    if (old) old.remove();
-    const s = document.createElement('script');
-    s.id = id;
-    s.async = false;
-    s.textContent = code;
-    (document.head || document.documentElement).appendChild(s);
-  }
-  function injectFromBase64(contentB64, path){
-    const clean = (contentB64 || '').replace(/\s+/g,'');
-    const decoded = atob(clean);
-    const sid = `injected-${(path||'').replace(/[^\w-]/g,'-')}`;
-    injectOrReplaceScript(sid, decoded);
-    injectedSids.add(sid);
-  }
-  function rollbackInjected(year){
-    injectedSids.forEach(id=>{ const el = document.getElementById(id); if (el) el.remove(); });
+  // ---- Injeção ----
+  function injectOrReplaceScript(id, code) { const old = document.getElementById(id); if (old) old.remove(); const s = document.createElement('script'); s.id = id; s.async = false; s.textContent = code; (document.head || document.documentElement).appendChild(s); }
+  function injectFromBase64(contentB64, path) { const clean = (contentB64 || '').replace(/\s+/g, ''); const decoded = atob(clean); const sid = `injected-${(path || '').replace(/[^\w-]/g, '-')}`; injectOrReplaceScript(sid, decoded); injectedSids.add(sid); }
+  function rollbackInjected(year) {
+    injectedSids.forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
     injectedSids.clear();
-    Object.entries(SLUG_TO_FULL).forEach(([slug, full])=>{
-      const key = `_${full}${year}Encrypted`;
-      try { delete window[key]; } catch(e){}
-    });
-    try { delete window.monthsData; } catch(e){}
+    Object.entries(SLUG_TO_FULL).forEach(([slug, full]) => { const key = `_${full}${year}Encrypted`; try { delete window[key]; } catch { } });
+    try { delete window.monthsData; } catch { }
   }
 
-  // ===== Pipeline por mês (cache-first, mas não autoriza sessão) =====
-  async function loadMonthWithCache(password, year, slug){
+  // ---- Callbacks de UI: habilita botão do mês assim que carregar ----
+  function onMonthReady(slug) {
+    // Ex.: botões com data-month="janeiro" etc.
+    const btn = document.querySelector(`[data-month="${slug}"]`);
+    if (btn) { btn.disabled = false; btn.classList.remove('is-loading', 'is-disabled'); }
+    if (typeof markMonthAsReady === 'function') markMonthAsReady(slug); // hook opcional
+  }
+
+  // ---- Pipeline com cache e habilitação progressiva ----
+  async function loadMonthWithCache(year, slug) {
     const kB = keyB64(year, slug);
     const kM = keyMeta(year, slug);
     const cachedB64 = LS.get(kB);
     const metaRaw = LS.get(kM);
-    let meta = null;
-    try { meta = metaRaw ? JSON.parse(metaRaw) : null; } catch { meta = null; }
+    let meta = null; try { meta = metaRaw ? JSON.parse(metaRaw) : null; } catch { }
 
-    if (cachedB64) {
-      injectFromBase64(cachedB64, meta?.path || `data/${year}/${slug}.js`);
-    }
+    if (cachedB64) { injectFromBase64(cachedB64, meta?.path || `data/${year}/${slug}.js`); onMonthReady(slug); }
 
-    const r = await fetchMonth(password, year, slug, meta?.etag);
+    const r = await fetchMonth(year, slug, meta?.etag);
     if (!r.ok) {
       if (!cachedB64) throw new Error(`month ${slug}: ${r.error || r.status}`);
-      return { slug, source: 'cache-fallback', networkOk: false, status: r.status };
+      return { slug, networkOk: false, source: 'cache-fallback' };
     }
-    if (r.status === 304) {
-      return { slug, source: cachedB64 ? 'cache' : 'network-304', networkOk: false, status: 304 };
+    if (r.status === 304) return { slug, networkOk: false, source: 'cache' };
+
+    if (r.data?.content) {
+      LS.set(kB, r.data.content);
+      LS.set(kM, JSON.stringify({ path: r.data.path || `data/${year}/${slug}.js`, etag: r.etag || null, tsCached: Date.now() }));
+      injectFromBase64(r.data.content, r.data.path);
+      onMonthReady(slug);
+      return { slug, networkOk: true, source: cachedB64 ? 'updated' : 'network' };
     }
-    const data = r.data;
-    if (data?.content) {
-      LS.set(kB, data.content);
-      LS.set(kM, JSON.stringify({
-        path: data.path || `data/${year}/${slug}.js`,
-        etag: r.etag || null,
-        tsCached: Date.now()
-      }));
-      injectFromBase64(data.content, data.path);
-      return { slug, source: cachedB64 ? 'updated' : 'network', networkOk: true, status: 200 };
-    }
-    return { slug, source: 'empty', networkOk: false, status: 200 };
+    return { slug, networkOk: false, source: 'empty' };
   }
 
-  // ===== 12 requisições ao mesmo tempo =====
-  async function loadYearAllAtOnce(password, year){
-    const promises = MONTH_SLUGS.map(slug =>
-      loadMonthWithCache(password, year, slug)
-        .then(r => ({ ok:true, r }))
-        .catch(err => ({ ok:false, err:String(err), slug }))
+  // ---- Seleção de meses a buscar (não além do mês atual) ----
+  function monthsForYear(year) {
+    const now = new Date(); const yNow = now.getFullYear(); const mNow = now.getMonth(); // 0..11
+    if (year < yNow) return MONTH_SLUGS.slice();       // todos os 12
+    if (year > yNow) return [];                        // nenhum
+    return MONTH_SLUGS.slice(0, mNow + 1);             // até o mês atual
+  }
+
+  // ---- Carregamento paralelo (todos de uma vez para máxima velocidade) ----
+  async function loadYearAllAtOnce(year) {
+    const months = monthsForYear(year);
+    const promises = months.map(slug =>
+      loadMonthWithCache(year, slug).then(r => ({ ok: true, r })).catch(err => ({ ok: false, slug, err: String(err) }))
     );
     const settled = await Promise.all(promises);
     let networkSuccess = 0;
-    const results = [];
-    for (const it of settled){
-      if (it.ok) {
-        results.push(it.r);
-        if (it.r.networkOk) networkSuccess += 1;
-      } else {
-        results.push({ slug: it.slug, source:'error', networkOk:false, err: it.err });
-      }
+    for (const it of settled) {
+      if (it.ok && it.r.networkOk) networkSuccess++;
     }
-    return { results, networkSuccess };
+    return { settled, networkSuccess, monthsCount: months.length };
   }
 
-  // ===== Boot =====
-  function startUI(){
-    const modal = document.getElementById('password-modal'); if (modal) modal.style.display='none';
-    const main = document.getElementById('dashboard-main'); if (main) main.style.display='block';
-    const dataMonths = (typeof getMonthData==='function') ? getMonthData() : (window.monthsData||{});
-    if (typeof initializeMonthSelector==='function') initializeMonthSelector(dataMonths);
-    if (typeof updateDashboard==='function') updateDashboard(dataMonths);
-    if (typeof initializeExportBlock==='function') initializeExportBlock(dataMonths);
-    if (typeof initializeModals==='function') initializeModals();
+  // ---- Boot/UI ----
+  function startUI() {
+    const modal = document.getElementById('password-modal'); if (modal) modal.style.display = 'none';
+    const main = document.getElementById('dashboard-main'); if (main) main.style.display = 'block';
+    const dataMonths = (typeof getMonthData === 'function') ? getMonthData() : (window.monthsData || {});
+    if (typeof initializeMonthSelector === 'function') initializeMonthSelector(dataMonths);
+    if (typeof updateDashboard === 'function') updateDashboard(dataMonths);
+    if (typeof initializeExportBlock === 'function') initializeExportBlock(dataMonths);
+    if (typeof initializeModals === 'function') initializeModals();
   }
 
-  async function handleEnter(){
+  async function handleEnter() {
     const passEl = document.getElementById('site-password');
     const errEl = document.getElementById('password-error');
     errEl.style.display = 'none';
-    const pwd = (passEl.value||'').trim();
-    if (!pwd){ errEl.style.display='block'; errEl.textContent='Informe a senha.'; return; }
+    const pwd = (passEl.value || '').trim();
+    if (!pwd) { errEl.style.display = 'block'; errEl.textContent = 'Informe a senha.'; return; }
 
-    try{
+    try {
       setLoading(true);
 
+      // limpa cache se senha mudou
       const newHash = await sha256Hex(pwd);
       const prevHash = LS.get(keyPass());
       if (prevHash && prevHash !== newHash) clearNamespace();
       LS.set(keyPass(), newHash);
 
+      // 1) valida senha (token)
+      await auth(pwd);
+
+      // 2) carrega meses permitidos (progressivo) — ano vigente por padrão
       const year = new Date().getFullYear();
       window.definedYear = year;
-      window._dashboardPassword = `${pwd}${pwd.slice(0, -2)}`;
 
-      const { results, networkSuccess } = await loadYearAllAtOnce(pwd, year);
+      const { networkSuccess, monthsCount } = await loadYearAllAtOnce(year);
 
-      if (networkSuccess === 0) {
+      // exige pelo menos 1 200 OK para liberar UI
+      if (monthsCount > 0 && networkSuccess === 0) {
         rollbackInjected(year);
         throw new Error('invalid_password_or_origin');
       }
 
-      loadYearDataEncrypted(year);
-      if (!window.monthsData || typeof window.monthsData!=='object') throw new Error('monthsData vazio');
-
+      // 3) monta monthsData e inicia
+      if (monthsCount > 0) {
+        loadYearDataEncrypted(year);
+      } else {
+        // ano futuro (sem meses) — garante objeto vazio
+        window.monthsData = window.monthsData || {};
+      }
       passEl.value = '';
       startUI();
-    } catch(e){
+    } catch (e) {
       console.error(e);
-      const errEl = document.getElementById('password-error');
-      errEl.style.display='block';
-      errEl.textContent='Senha inválida ou origem não permitida.';
+      errEl.style.display = 'block';
+      errEl.textContent = 'Senha inválida ou origem não permitida.';
     } finally {
       setLoading(false);
     }
