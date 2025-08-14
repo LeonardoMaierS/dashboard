@@ -150,16 +150,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (!(window.monthsData && typeof window.monthsData === "object")) return;
 
-  initializeMonthSelector();
+  const dataMonths = getMonthData();
+
+  initializeMonthSelector(dataMonths);
   initializeModals();
-  updateDashboard();
+  updateDashboard(dataMonths);
 });
 
-function initializeMonthSelector() {
+function initializeMonthSelector(dataMonths) {
   const timeline = document.getElementById('monthTimeline');
   timeline.innerHTML = '';
-
-  const dataMonths = getMonthData();
 
   Object.keys(dataMonths).forEach(monthKey => {
     const monthObj = dataMonths[monthKey];
@@ -202,12 +202,12 @@ function toggleMonth(monthKey, dataMonths) {
     });
   }
 
-  initializeMonthSelector();
+  initializeMonthSelector(dataMonths);
   initializeModals();
-  updateDashboard();
+  updateDashboard(dataMonths);
 }
 
-function updateDashboard() {
+function updateDashboard(dataMonths) {
   const keyMetrics = document.getElementById('keyMetrics');
   const chartsSection = document.getElementById('chartsSection');
   const tableSection = document.getElementById('tableSection');
@@ -219,7 +219,7 @@ function updateDashboard() {
     limitSelect.value = tableItemLimit;
     limitSelect.addEventListener('change', function () {
       tableItemLimit = parseInt(this.value);
-      updateDetailedTable();
+      updateDetailedTable(dataMonths);
     });
   }
 
@@ -244,15 +244,14 @@ function updateDashboard() {
     if (tableSection) tableSection.style.display = '';
     if (insightsSection) insightsSection.style.display = '';
 
-    updateKPIs();
-    updateMainCharts();
-    updateDetailedTable();
-    updateInsights();
+    updateKPIs(dataMonths);
+    updateMainCharts(dataMonths);
+    updateDetailedTable(dataMonths);
+    updateInsights(dataMonths);
   }
 }
 
 function updateKPIs() {
-  const dataMonths = getMonthData();
   const grid = document.getElementById('kpiGrid');
   grid.innerHTML = '';
 
@@ -327,8 +326,7 @@ function updateKPIs() {
 }
 
 
-function updateMainCharts() {
-  const dataMonths = getMonthData();
+function updateMainCharts(dataMonths) {
   const grid = document.getElementById('mainChartsGrid');
   grid.innerHTML = `
     <div class="chart-container">
@@ -474,8 +472,7 @@ function updateMainCharts() {
   initializeModals();
 }
 
-function updateDetailedTable() {
-  const dataMonths = getMonthData();
+function updateDetailedTable(dataMonths) {
   const tableHead = document.getElementById('tableHead');
   const tableBody = document.getElementById('tableBody');
 
@@ -576,8 +573,7 @@ function updateDetailedTable() {
 }
 
 
-function updateInsights() {
-  const dataMonths = getMonthData();
+function updateInsights(dataMonths) {
   const container = document.getElementById('insightsContainer');
   container.innerHTML = '';
 
@@ -1459,6 +1455,8 @@ document.querySelectorAll('.custom-select').forEach((select) => {
     select.classList.toggle('open')
   });
 
+  const dataMonths = getMonthData();
+
   options.forEach(function (option) {
     option.addEventListener('click', function (e) {
       e.stopPropagation()
@@ -1472,8 +1470,8 @@ document.querySelectorAll('.custom-select').forEach((select) => {
         loadYearDataEncrypted(window.definedYear)
 
         selectedMonths = []
-        initializeMonthSelector()
-        updateDashboard()
+        initializeMonthSelector(dataMonths)
+        updateDashboard(dataMonths)
         initializeModals()
       }
 
@@ -1483,8 +1481,8 @@ document.querySelectorAll('.custom-select').forEach((select) => {
         loadYearDataEncrypted(window.definedYear)
 
         selectedMonths = []
-        initializeMonthSelector()
-        updateDashboard()
+        initializeMonthSelector(dataMonths)
+        updateDashboard(dataMonths)
         initializeModals()
       }
     });
