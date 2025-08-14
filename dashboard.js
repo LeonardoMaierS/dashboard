@@ -2,27 +2,6 @@ let tableItemLimit = 5
 let selectedMonths = []
 let monthsBlocksRendered = []
 
-function constructorObj() {
-  const year = window.definedYear
-  let monthsData = {}
-
-  MONTHS.forEach((month) => {
-    const monthKey = `${month}${year}`;
-    const baseData = {
-      name: month,
-      year: year,
-      available: false,
-      historicoDiario: {}
-    }
-    monthsData[monthKey] = {
-      mobile: baseData,
-      desktop: baseData
-    };
-  });
-
-  return monthsData
-}
-
 function getMonthData(platform) {
   loadYearDataEncrypted()
 

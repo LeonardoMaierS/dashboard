@@ -5,7 +5,10 @@ const MONTHS = [
 
 function loadYearDataEncrypted() {
   window.monthsData = window.monthsData ?? {}
-  
+
+  if(!window.definedYear)
+    window.definedYear = new Date().getFullYear();
+
   MONTHS.forEach(month => { 
     loadEncryptedMonth(month, window.definedYear);
   });      
