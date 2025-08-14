@@ -1,8 +1,8 @@
 window.addEventListener('DOMContentLoaded', function () {
   const API_BASE = window.ENV.REMOTE_BASE_URL;
-  const CACHE_NS = "dash:v1";
+  // const CACHE_NS = "dash:v1";
   const MONTH_SLUGS = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-  const injectedSids = new Set();
+  // const injectedSids = new Set();
   let BEARER = null;
 
   injectStyles();
@@ -104,6 +104,7 @@ window.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  /*
   // Cache + Hash
   const LS = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
@@ -129,6 +130,7 @@ window.addEventListener('DOMContentLoaded', function () {
         LS.del(k);
     });
   }
+  */
 
   async function auth(password) {
     const res = await fetch(`${API_BASE}/auth`, {
@@ -149,33 +151,26 @@ window.addEventListener('DOMContentLoaded', function () {
     BEARER = j.token;
   }
 
-  async function fetchMonth(year, month, etag) {
+  async function fetchMonth(year, month) {
     const headers = { 'Content-Type': 'application/json' };
 
     if (BEARER) headers['Authorization'] = `Bearer ${BEARER}`;
 
-    if (etag) headers['If-None-Match'] = etag;
-
     const res = await fetch(`${API_BASE}/files/${year}/${month}`, { method: 'POST', headers, body: '{}' });
 
-    if (res.status === 304) return { ok: true, status: 304, etag: etag || null, data: null };
-
-    if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-
-      return { ok: false, status: res.status, error: txt || `HTTP ${res.status}` };
-    }
-
-    const et = res.headers.get('ETag') || null;
+    if (!res.ok)
+      throw new Error(`status: ${res.status}`)
 
     const j = await res.json();
 
-    return { ok: true, status: 200, etag: et, data: j };
+    return { ok: true, status: 200, data: j };
   }
 
+  /*
   // ===== CryptoJS (garante antes de decriptar) =====
   async function ensureCryptoJS() {
     if (window.CryptoJS) return;
+
     await new Promise((res, rej) => {
       const s = document.createElement('script');
       s.src = "https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js";
@@ -183,7 +178,9 @@ window.addEventListener('DOMContentLoaded', function () {
       document.head.appendChild(s);
     });
   }
+    */
 
+  /*
   function injectOrReplaceScript(id, code) {
     const old = document.getElementById(id);
 
@@ -203,24 +200,23 @@ window.addEventListener('DOMContentLoaded', function () {
     const sid = `injected-${(path || '').replace(/[^\w-]/g, '-')}`;
     injectOrReplaceScript(sid, decoded); injectedSids.add(sid);
   }
+  */
 
   // ===== Pipeline por mês (cache-first seguro; cache não autoriza) =====
   async function loadMonthWithCache(year, month) {
-    const kB = keyB64(year, month);
-    const kM = keyMeta(year, month);
-    const cachedB64 = LS.get(kB);
-    const metaRaw = LS.get(kM);
-    let meta = null; try { meta = metaRaw ? JSON.parse(metaRaw) : null; } catch { }
+    // const kB = keyB64(year, month);
+    // const kM = keyMeta(year, month);
+    // const cachedB64 = LS.get(kB);
+    // const metaRaw = LS.get(kM);
+    // let meta = null; try { meta = metaRaw ? JSON.parse(metaRaw) : null; } catch { }
 
-    if (cachedB64) {
-      injectFromBase64(cachedB64, meta?.path || `data/${year}/${month}.js`);
-    }
+    // if (cachedB64) {      injectFromBase64(cachedB64, meta?.path || `data/${year}/${month}.js`);    }
 
-    const r = await fetchMonth(year, month, meta?.etag);
+    return await fetchMonth(year, month);
 
+    /*
     if (!r.ok) {
-      if (!cachedB64)
-        throw new Error(`month ${month}: ${r.error || r.status}`);
+      // if (!cachedB64)        throw new Error(`month ${month}: ${r.error || r.status}`);
 
       return { month, networkOk: false, source: 'cache-fallback' };
     }
@@ -230,41 +226,38 @@ window.addEventListener('DOMContentLoaded', function () {
     }
 
     if (r.data?.content) {
-      LS.set(kB, r.data.content);
-      LS.set(kM, JSON.stringify({ path: r.data.path || `data/${year}/${month}.js`, etag: r.etag || null, tsCached: Date.now() }));
-      injectFromBase64(r.data.content, r.data.path);
+      // LS.set(kB, r.data.content);
+      // LS.set(kM, JSON.stringify({ path: r.data.path || `data/${year}/${month}.js`, etag: r.etag || null, tsCached: Date.now() }));
+      // injectFromBase64(r.data.content, r.data.path);
 
       startUI()
 
-      return { month, networkOk: true, source: cachedB64 ? 'updated' : 'network' };
+      return // { month, networkOk: true, source: cachedB64 ? 'updated' : 'network' };
     }
 
-    return { month, networkOk: false, source: 'empty' };
-  }
-
-  // ===== Seleção de meses (não além do mês atual) =====
-  function monthsForYear(year) {
-    const now = new Date();
-    const yNow = now.getFullYear();
-    const mNow = now.getMonth();
-
-    if (year < yNow)
-      return MONTH_SLUGS.slice();
-
-    if (year > yNow)
-      return [];
-
-    return MONTH_SLUGS.slice(0, mNow + 1);
+    return // { month, networkOk: false, source: 'empty' };
+    */
   }
 
   // ===== Carregamento paralelo =====
-  async function loadYearAllAtOnce(year) {
-    const months = monthsForYear(year);
+  async function loadYearAllAtOnce() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const mNow = now.getMonth();
+    const months = MONTH_SLUGS.slice(0, mNow + 1);
     let contHeaderLoader = months.length
 
+    window.definedYear = year;
+
     const promises = months.map(month =>
-      loadMonthWithCache(year, month)
-        .then(() => {
+      fetchMonth(year, month)
+        .then(({ data }) => {
+          const monthA = month.charAt(0).toUpperCase() + month.slice(1);
+          const key = `_${monthA}${year}Encrypted`;
+          window[key] = data.content
+
+          startUI()
+
           contHeaderLoader -= 1
         })
         .catch(err => {
@@ -302,29 +295,31 @@ window.addEventListener('DOMContentLoaded', function () {
     const passEl = document.getElementById('site-password');
     const errEl = document.getElementById('password-error');
     errEl.style.display = 'none';
+
     const pwd = (passEl.value || '').trim();
+
     if (!pwd) { errEl.style.display = 'block'; errEl.textContent = 'Informe a senha.'; return; }
 
     try {
       setLoading(true);
 
-      // 1) autentica (fail-fast) — e não altera a senha
+      // autentica (fail-fast) — e não altera a senha
       await auth(pwd);
+
       window._dashboardPassword = `${pwd}${pwd.slice(0, -2)}`;
 
+      /*
       // 2) invalida cache se senha mudou
       const newHash = await sha256Hex(pwd);
       const prevHash = LS.get(keyPass());
       if (prevHash && prevHash !== newHash) clearNamespace();
       LS.set(keyPass(), newHash);
+      */
 
-      const year = new Date().getFullYear();
-      window.definedYear = year;
-
-      await loadYearAllAtOnce(year);
+      await loadYearAllAtOnce();
 
       // garantir CryptoJS
-      await ensureCryptoJS();
+      // await ensureCryptoJS();
 
       passEl.value = '';
       startUI();

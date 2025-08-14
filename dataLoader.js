@@ -6,21 +6,21 @@ const MONTHS = [
 function loadYearDataEncrypted() {
   window.monthsData = window.monthsData ?? {}
 
-  if(!window.definedYear)
+  if (!window.definedYear)
     window.definedYear = new Date().getFullYear();
 
-  MONTHS.forEach(month => { 
+  MONTHS.forEach(month => {
     loadEncryptedMonth(month, window.definedYear);
-  });      
+  });
 }
 
-function loadEncryptedMonth(month, year ) {
-  try {    
+function loadEncryptedMonth(month, year) {
+  try {
     const key = month === 'Março' ? `_Marco${year}Encrypted` : `_${month}${year}Encrypted`;
     const encData = window[key];
 
     // Caso ja tenha os dados do mes não precisa seguir
-    if(window.monthsData[`${month}${year}`]?.available) return
+    if (window.monthsData[`${month}${year}`]?.available) return
 
     let emptyMonth = {
       [`${month}${year}`]: {
