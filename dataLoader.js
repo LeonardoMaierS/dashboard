@@ -3,11 +3,11 @@ const MONTHS = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ];
 
-function loadYearDataEncrypted(year) {
+function loadYearDataEncrypted() {
   window.monthsData = window.monthsData ?? {}
-
+  
   MONTHS.forEach(month => { 
-    loadEncryptedMonth(month, year ?? window.definedYear);
+    loadEncryptedMonth(month, window.definedYear);
   });      
 }
 

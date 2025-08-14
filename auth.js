@@ -1,5 +1,3 @@
-// auth.js — revisão completa: /auth fail‑fast, 12 requisições só até o mês atual, cache-first seguro,
-// habilitação progressiva dos botões, CryptoJS garantido antes de decriptar, sem alterar senha.
 window.addEventListener('DOMContentLoaded', function () {
   // ===== Config =====
   const API_BASE = window.ENV.REMOTE_BASE_URL;
@@ -58,7 +56,6 @@ window.addEventListener('DOMContentLoaded', function () {
   async function sha256Hex(t) { const e = new TextEncoder().encode(t); const b = await crypto.subtle.digest('SHA-256', e); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
   function clearNamespace() { LS.keys().forEach(k => { if (k.startsWith(`${CACHE_NS}:`)) LS.del(k); }); }
 
-  // ===== Auth (/auth) — fail‑fast =====
   async function auth(password) {
     const res = await fetch(`${API_BASE}/auth`, {
       method: 'POST',
@@ -80,7 +77,6 @@ window.addEventListener('DOMContentLoaded', function () {
     startUI();
   }
 
-  // ===== Network (/files/<y>/<m>) =====
   async function fetchMonth(year, monthSlug, etag) {
     const headers = { 'Content-Type': 'application/json' };
 
@@ -248,7 +244,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
       // 4) garantir CryptoJS e montar dados
       await ensureCryptoJS();
-      if (monthsCount > 0) loadYearDataEncrypted(year);
+      if (monthsCount > 0) loadYearDataEncrypted();
       else window.monthsData = window.monthsData || {};
 
       passEl.value = '';

@@ -24,12 +24,12 @@ function constructorObj() {
 }
 
 function getMonthData(platform) {
+  loadYearDataEncrypted()
+
   let data = {};
   const monthObj = window.monthsData;
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platform || platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase()
-
-  if (!monthObj) return data;
 
   Object.keys(monthObj).forEach(monthKey => {
     if (device === 'desktop e mobile') {
@@ -162,6 +162,8 @@ function initializeMonthSelector(dataMonths) {
   timeline.innerHTML = '';
 
   Object.keys(dataMonths).forEach(monthKey => {
+    const monthObj = dataMonths[monthKey];
+
     const isAvailable = !!monthObj.available && Object.keys(monthObj.historicoDiario || {}).length > 0;
 
     const card = document.createElement('div');
@@ -1464,7 +1466,7 @@ document.querySelectorAll('.custom-select').forEach((select) => {
 
       if (select.id === 'yearCustomSelect') {
         window.definedYear = option.getAttribute('data-value')
-        loadYearDataEncrypted(window.definedYear)
+        loadYearDataEncrypted()
 
         selectedMonths = []
         initializeMonthSelector(dataMonths)
@@ -1475,7 +1477,7 @@ document.querySelectorAll('.custom-select').forEach((select) => {
       if (select.id === 'platformCustomSelect') {
         document.getElementById('selected-months-blocks').innerHTML = ''
         window.definedYear = option.getAttribute('data-value')
-        loadYearDataEncrypted(window.definedYear)
+        loadYearDataEncrypted()
 
         selectedMonths = []
         initializeMonthSelector(dataMonths)
