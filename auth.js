@@ -128,7 +128,9 @@ window.addEventListener('DOMContentLoaded', function () {
   // ===== UI: habilita botão do mês quando disponível =====
   function onMonthReady(slug){
     const btn = document.querySelector(`[data-month="${slug}"]`);
+
     if (btn) { btn.disabled = false; btn.classList.remove('is-loading','is-disabled'); }
+
     if (typeof markMonthAsReady === 'function') markMonthAsReady(slug);
   }
 
@@ -140,10 +142,8 @@ window.addEventListener('DOMContentLoaded', function () {
     const metaRaw = LS.get(kM);
     let meta = null; try{ meta = metaRaw ? JSON.parse(metaRaw) : null; }catch{}
 
-    // pinta rápido se tem cache (não autoriza sessão)
     if (cachedB64) { injectFromBase64(cachedB64, meta?.path || `data/${year}/${slug}.js`); onMonthReady(slug); }
 
-    // baixa / revalida
     const r = await fetchMonth(year, slug, meta?.etag);
 
     if (!r.ok) {
@@ -209,10 +209,12 @@ window.addEventListener('DOMContentLoaded', function () {
 
   // ===== Boot/UI =====
   function startUI(){
+    const dataMonths = getMonthData();
+
     const modal = document.getElementById('password-modal'); if (modal) modal.style.display='none';
     const main = document.getElementById('dashboard-main'); if (main) main.style.display='block';
     
-    const dataMonths = (typeof getMonthData==='function') ? getMonthData() : (window.monthsData||{});
+    setLoading(false);
 
     if (typeof initializeMonthSelector==='function') initializeMonthSelector(dataMonths);
     if (typeof updateDashboard==='function') updateDashboard(dataMonths);
