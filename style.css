@@ -70,10 +70,6 @@ body {
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  background: rgba(16, 42, 48, .85);
-  border: 1px solid #1e4149;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
   color: #eaf7fb;
   font-weight: 700;
   font-size: 12px;
@@ -1348,8 +1344,8 @@ canvas {
   position: absolute;
   left: 49%;
   top: 90%;
-  background: #14323a;
-  border: 1.5px solid #1e4149;
+  background: var(--surface);
+  border: 1.5px solid var(--brand-dark);
   border-radius: 11px;
   box-shadow: 0 6px 32px #00151c33;
   z-index: 2000;
@@ -1380,8 +1376,8 @@ canvas {
 }
 
 .custom-select-option[data-disabled="true"] {
-  color: #aaa;
-  background: #1e4149;
+  color: var(--text-primary);
+  background: var(--brand-dark);
   cursor: not-allowed;
   pointer-events: none;
   opacity: 0.6;
@@ -1415,8 +1411,8 @@ canvas {
   top: 100%;
   transform: translateX(-50%);
   width: 165px;
-  background: #14323a;
-  border: 1.5px solid #1e4149;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
   border-radius: 11px;
   box-shadow: 0 6px 32px #00151c33;
   z-index: 2000;

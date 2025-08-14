@@ -6,35 +6,79 @@ window.addEventListener('DOMContentLoaded', function () {
   const injectedSids = new Set();
   let BEARER = null;
 
+  injectStyles();
   ensurePasswordModal();
+
+  function injectStyles() {
+    if (document.getElementById('auth-styles')) return;
+    const css = `
+    :root{
+      --bg:#0f252b; --card:#14323a; --card-2:#1b3c45; --text:#eaf7fb; --muted:#9cc7d1; --accent:#2a5862; --accent-2:#316b77; --danger:#e05d6f;
+      --radius:16px; --shadow:0 12px 40px rgba(0,0,0,.45);
+    }
+    #password-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999;padding:24px}
+    .auth-card{width:min(92vw,380px);background:linear-gradient(180deg,var(--card),var(--card-2));border-radius:var(--radius);box-shadow:var(--shadow);padding:28px}
+    .auth-title{color:var(--text);font-weight:800;font-size:18px;letter-spacing:.3px;margin:0 0 6px}
+    .auth-sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+    .auth-field{display:flex;gap:8px;align-items:center;background:#102a30;border:1px solid #1e4149;border-radius:10px;padding:10px 12px}
+    .auth-input{flex:1;background:transparent;border:0;outline:0;color:var(--text);font-size:15px}
+    .auth-eye{cursor:pointer;opacity:.8}
+    .auth-btn{width:100%;margin-top:12px;background:var(--accent);color:var(--text);border:0;border-radius:10px;padding:12px 14px;font-weight:800;font-size:15px;cursor:pointer;transition:.2s}
+    .auth-btn:hover{background:var(--accent-2)}
+    .auth-err{display:none;color:var(--danger);font-size:13px;margin-top:10px}
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .brand i{width:32px;height:32px;border-radius:8px;background:#19414a;display:inline-flex;align-items:center;justify-content:center}
+    .brand svg{width:18px;height:18px;opacity:.9}
+    /* botão com spinner */
+    .loading .btn-label{opacity:0}
+    .loading .btn-spinner{display:inline-block}
+    .btn-spinner{display:none;width:18px;height:18px;border-radius:50%;border:2px solid rgba(234,247,251,.25);border-top-color:var(--text);animation:spin .9s linear infinite;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    /* overlay global */
+    #global-loader{position:fixed;inset:0;background:rgba(10,20,24,.6);backdrop-filter:saturate(120%) blur(2px);display:none;align-items:center;justify-content:center;z-index:10000}
+    .gcard{background:linear-gradient(180deg,var(--card),var(--card-2));padding:14px 18px;border-radius:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;color:var(--text);font-weight:700}
+    .gspin{width:18px;height:18px;border-radius:50%;border:2px solid rgba(234,247,251,.25);border-top-color:var(--text);animation:spin .9s linear infinite}
+    `;
+    const s = document.createElement('style');
+    s.id = 'auth-styles';
+    s.textContent = css;
+    document.head.appendChild(s);
+  }
+
   function ensurePasswordModal() {
     if (document.getElementById('password-modal')) return;
     document.body.insertAdjacentHTML('beforeend', `
-      <div id="password-modal" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999;padding:24px">
-        <div style="width:min(92vw,380px);background:linear-gradient(180deg,#14323a,#1b3c45);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.45);padding:28px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-            <i aria-hidden="true" style="width:32px;height:32px;border-radius:8px;background:#19414a;display:inline-flex;align-items:center;justify-content:center">
-              <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 3l8 4.5v9L12 21 4 16.5v-9L12 3Z" stroke="#8fd6e5" stroke-width="1.4"/></svg>
+      <div id="password-modal" role="dialog" aria-modal="true">
+        <div class="auth-card">
+          <div class="brand">
+            <i aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4.5v9L12 21 4 16.5v-9L12 3Z" stroke="#8fd6e5" stroke-width="1.4"/></svg>
             </i>
             <div style="display:flex;flex-direction:column">
-              <span style="color:#eaf7fb;font-weight:800;font-size:18px;margin:0 0 6px">Acesso ao Dashboard</span>
-              <span style="color:#9cc7d1;font-size:13px">Digite a senha para carregar os dados</span>
+              <span class="auth-title">Acesso ao Dashboard</span>
+              <span class="auth-sub">Digite a senha para carregar os dados</span>
             </div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;background:#102a30;border:1px solid #1e4149;border-radius:10px;padding:10px 12px">
-            <input type="password" id="site-password" placeholder="Senha" autocomplete="current-password" style="flex:1;background:transparent;border:0;outline:0;color:#eaf7fb;font-size:15px"/>
+
+          <div class="auth-field">
+            <input type="password" id="site-password" class="auth-input" placeholder="Senha" autocomplete="current-password" />
+            <svg id="toggle-eye" class="auth-eye" viewBox="0 0 24 24" fill="none" width="20" height="20">
+              <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" stroke="#9cc7d1" stroke-width="1.5"/>
+              <circle cx="12" cy="12" r="3" stroke="#9cc7d1" stroke-width="1.5"/>
+            </svg>
           </div>
-          <button id="password-btn" style="width:100%;margin-top:12px;background:#2a5862;color:#eaf7fb;border:0;border-radius:10px;padding:12px 14px;font-weight:800;font-size:15px;cursor:pointer">Entrar</button>
-          <div id="password-error" style="display:none;color:#e05d6f;font-size:13px;margin-top:10px"></div>
+
+          <button id="password-btn" class="auth-btn">
+            <span class="btn-label">Entrar</span>
+            <span class="btn-spinner" aria-hidden="true"></span>
+          </button>
+          <div id="password-error" class="auth-err"></div>
         </div>
       </div>
-      <div id="global-loader" style="position:fixed;inset:0;background:rgba(10,20,24,.6);backdrop-filter:saturate(120%) blur(2px);display:none;align-items:center;justify-content:center;z-index:10000">
-        <div style="background:linear-gradient(180deg,#14323a,#1b3c45);padding:14px 18px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.45);display:flex;align-items:center;gap:10px;color:#eaf7fb;font-weight:700">
-          <span style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(234,247,251,.25);border-top-color:#eaf7fb;animation:spin .9s linear infinite;display:inline-block"></span>
-          <span>Carregando dados…</span>
-        </div>
+
+      <div id="global-loader" aria-live="polite" aria-busy="true">
+        <div class="gcard"><span class="gspin" aria-hidden="true"></span> <span>Carregando dados…</span></div>
       </div>
-      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     `);
     document.getElementById('password-btn').onclick = handleEnter;
     document.getElementById('site-password').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleEnter(); });
@@ -171,8 +215,6 @@ window.addEventListener('DOMContentLoaded', function () {
       injectFromBase64(r.data.content, r.data.path);
       onMonthReady(slug);
 
-
-
       startUI()
 
       return { slug, networkOk: true, source: cachedB64 ? 'updated' : 'network' };
@@ -192,7 +234,7 @@ window.addEventListener('DOMContentLoaded', function () {
   // ===== Carregamento paralelo (12 de uma vez no ano vigente) =====
   async function loadYearAllAtOnce(year) {
     const months = monthsForYear(year);
-    let contHeaderLoader = 15 // months.length
+    let contHeaderLoader = months.length
 
     initHeaderLoader(contHeaderLoader);
 
