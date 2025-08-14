@@ -107,16 +107,36 @@ window.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  function injectOrReplaceScript(id, code) { const old = document.getElementById(id); if (old) old.remove(); const s = document.createElement('script'); s.id = id; s.async = false; s.textContent = code; (document.head || document.documentElement).appendChild(s); }
-  function injectFromBase64(contentB64, path) { const clean = (contentB64 || '').replace(/\s+/g, ''); const decoded = atob(clean); const sid = `injected-${(path || '').replace(/[^\w-]/g, '-')}`; injectOrReplaceScript(sid, decoded); injectedSids.add(sid); }
+  function injectOrReplaceScript(id, code) {
+    const old = document.getElementById(id);
+
+    if (old) old.remove();
+
+    const s = document.createElement('script');
+    s.id = id;
+    s.async = false;
+    s.textContent = code;
+
+    (document.head || document.documentElement).appendChild(s);
+  }
+
+  function injectFromBase64(contentB64, path) {
+    const clean = (contentB64 || '').replace(/\s+/g, '');
+    const decoded = atob(clean);
+    const sid = `injected-${(path || '').replace(/[^\w-]/g, '-')}`;
+    injectOrReplaceScript(sid, decoded); injectedSids.add(sid);
+  }
+
   function rollbackInjected(year) {
     injectedSids.forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
     injectedSids.clear();
+
     Object.entries(SLUG_TO_FULL).forEach(([slug, full]) => { const key = `_${full}${year}Encrypted`; try { delete window[key]; } catch { } });
+
     try { delete window.monthsData; } catch { }
   }
 
-  // ===== UI: habilita botão do mês quando disponível =====
+  // ===== UI: habilita botão do mês quando disponível ===== TODO - remover
   function onMonthReady(slug) {
     const btn = document.querySelector(`[data-month="${slug}"]`);
 
@@ -151,6 +171,8 @@ window.addEventListener('DOMContentLoaded', function () {
       injectFromBase64(r.data.content, r.data.path);
       onMonthReady(slug);
 
+
+
       startUI()
 
       return { slug, networkOk: true, source: cachedB64 ? 'updated' : 'network' };
@@ -170,11 +192,22 @@ window.addEventListener('DOMContentLoaded', function () {
   // ===== Carregamento paralelo (12 de uma vez no ano vigente) =====
   async function loadYearAllAtOnce(year) {
     const months = monthsForYear(year);
+    let contHeaderLoader = months.length
+
+    initHeaderLoader(contHeaderLoader);
 
     const promises = months.map(slug =>
       loadMonthWithCache(year, slug)
-        .then(r => ({ ok: true, r }))
-        .catch(err => ({ ok: false, slug, err: String(err) }))
+        .then(r => {
+          contHeaderLoader -= 1
+          initHeaderLoader(contHeaderLoader);
+          return { ok: true, r }
+        })
+        .catch(err => {
+          contHeaderLoader -= 1
+          initHeaderLoader(contHeaderLoader);
+          return { ok: false, slug, err: String(err) }
+        })
     );
 
     const settled = await Promise.all(promises);
@@ -187,6 +220,27 @@ window.addEventListener('DOMContentLoaded', function () {
 
     return { networkSuccess, monthsCount: months.length };
   }
+
+  // --- header loader controller ---
+  (function () {
+    let _pending = 0;
+    window.initHeaderLoader = function (total = 12) {
+      _pending = Math.max(0, total | 0);
+      const el = document.getElementById('header-loader');
+      if (!el) return;
+      el.style.display = _pending > 0 ? 'inline-flex' : 'none';
+      el.setAttribute('aria-busy', String(_pending > 0));
+    };
+    window.headerLoaderStep = function () {
+      const el = document.getElementById('header-loader');
+      if (!el) return;
+      _pending = Math.max(0, _pending - 1);
+      if (_pending === 0) {
+        el.style.display = 'none';
+        el.setAttribute('aria-busy', 'false');
+      }
+    };
+  })();
 
   function startUI() {
     const dataMonths = getMonthData();

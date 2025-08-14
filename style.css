@@ -62,6 +62,40 @@ body {
   color: var(--text-secondary);
 }
 
+#header-loader {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(16, 42, 48, .85);
+  border: 1px solid #1e4149;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
+  color: #eaf7fb;
+  font-weight: 700;
+  font-size: 12px;
+  z-index: 5;
+}
+
+#header-loader .hdr-spin {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(234, 247, 251, .25);
+  border-top-color: #eaf7fb;
+  display: inline-block;
+  animation: hdr-spin 0.9s linear infinite;
+}
+
+@keyframes hdr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .month-selector-container {
   display: flex;
   justify-content: center;
