@@ -1,13 +1,15 @@
-// auth.js — autentica, carrega meses progressivamente e só até o mês atual
+// auth.js — revisão completa: /auth fail‑fast, 12 requisições só até o mês atual, cache-first seguro,
+// habilitação progressiva dos botões, CryptoJS garantido antes de decriptar, sem alterar senha.
 window.addEventListener('DOMContentLoaded', function () {
+  // ===== Config =====
   const API_BASE = window.ENV.REMOTE_BASE_URL;
   const CACHE_NS = "dash:v1";
-  const MONTH_SLUGS = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-  const SLUG_TO_FULL = { janeiro: "Janeiro", fevereiro: "Fevereiro", marco: "Março", abril: "Abril", maio: "Maio", junho: "Junho", julho: "Julho", agosto: "Agosto", setembro: "Setembro", outubro: "Outubro", novembro: "Novembro", dezembro: "Dezembro" };
+  const MONTH_SLUGS = ["janeiro","fevereiro","marco","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const SLUG_TO_FULL = { janeiro:"Janeiro", fevereiro:"Fevereiro", marco:"Março", abril:"Abril", maio:"Maio", junho:"Junho", julho:"Julho", agosto:"Agosto", setembro:"Setembro", outubro:"Outubro", novembro:"Novembro", dezembro:"Dezembro" };
   const injectedSids = new Set();
   let BEARER = null; // token após /auth
 
-  // ---- UI senha (mantive seu layout/ícone inline) ----
+  // ===== UI: Modal Senha =====
   ensurePasswordModal();
   function ensurePasswordModal() {
     if (document.getElementById('password-modal')) return;
@@ -39,178 +41,210 @@ window.addEventListener('DOMContentLoaded', function () {
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     `);
     document.getElementById('password-btn').onclick = handleEnter;
-    document.getElementById('site-password').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleEnter(); });
+    document.getElementById('site-password').addEventListener('keydown', (e)=>{ if(e.key==='Enter') handleEnter(); });
   }
-  function setLoading(on) { const o = document.getElementById('global-loader'); if (o) o.style.display = on ? 'flex' : 'none'; }
+  function setLoading(on){ const o=document.getElementById('global-loader'); if(o) o.style.display=on?'flex':'none'; }
 
-  // ---- Cache ----
+  // ===== Utils: Cache + Hash =====
   const LS = {
-    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
-    set(k, v) { try { localStorage.setItem(k, v); } catch { } },
-    del(k) { try { localStorage.removeItem(k); } catch { } },
-    keys() { try { return Object.keys(localStorage); } catch { return []; } }
+    get(k){ try{ return localStorage.getItem(k); }catch{ return null; } },
+    set(k,v){ try{ localStorage.setItem(k,v); }catch{} },
+    del(k){ try{ localStorage.removeItem(k); }catch{} },
+    keys(){ try{ return Object.keys(localStorage); }catch{ return []; } }
   };
-  const keyB64 = (y, slug) => `${CACHE_NS}:${y}:${slug}:b64`;
-  const keyMeta = (y, slug) => `${CACHE_NS}:${y}:${slug}:meta`;
-  const keyPass = () => `${CACHE_NS}:lastPassHash`;
-  async function sha256Hex(t) { const e = new TextEncoder().encode(t); const b = await crypto.subtle.digest('SHA-256', e); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
-  function clearNamespace() { LS.keys().forEach(k => { if (k.startsWith(`${CACHE_NS}:`)) LS.del(k); }); }
+  const keyB64  = (y,slug)=>`${CACHE_NS}:${y}:${slug}:b64`;
+  const keyMeta = (y,slug)=>`${CACHE_NS}:${y}:${slug}:meta`;
+  const keyPass = ()=>`${CACHE_NS}:lastPassHash`;
+  async function sha256Hex(t){ const e=new TextEncoder().encode(t); const b=await crypto.subtle.digest('SHA-256',e); return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''); }
+  function clearNamespace(){ LS.keys().forEach(k=>{ if(k.startsWith(`${CACHE_NS}:`)) LS.del(k); }); }
 
-  // ---- Auth (/auth) ----
-  async function auth(password) {
+  // ===== Auth (/auth) — fail‑fast =====
+  async function auth(password){
     const res = await fetch(`${API_BASE}/auth`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ password })
     });
     if (!res.ok) {
-      const txt = await res.text().catch(() => '');
+      const txt = await res.text().catch(()=> '');
       throw new Error(`AUTH_${res.status}:${txt}`);
     }
     const j = await res.json();
     if (!j.token) throw new Error('AUTH_NO_TOKEN');
     BEARER = j.token;
-    return true;
   }
 
-  // ---- Network (/files/<y>/<m>) ----
-  async function fetchMonth(year, monthSlug, etag) {
+  // ===== Network (/files/<y>/<m>) =====
+  async function fetchMonth(year, monthSlug, etag){
     const headers = { 'Content-Type': 'application/json' };
     if (BEARER) headers['Authorization'] = `Bearer ${BEARER}`;
     if (etag) headers['If-None-Match'] = etag;
-    const res = await fetch(`${API_BASE}/files/${year}/${monthSlug}`, { method: 'POST', headers, body: '{}' });
-    if (res.status === 304) return { ok: true, status: 304, etag: etag || null, data: null };
+    const res = await fetch(`${API_BASE}/files/${year}/${monthSlug}`, { method:'POST', headers, body: '{}' });
+    if (res.status === 304) return { ok:true, status:304, etag: etag||null, data:null };
     if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-      return { ok: false, status: res.status, error: txt || `HTTP ${res.status}` };
+      const txt = await res.text().catch(()=> '');
+      return { ok:false, status:res.status, error: txt || `HTTP ${res.status}` };
     }
     const et = res.headers.get('ETag') || null;
     const j = await res.json(); // {content, path}
-    return { ok: true, status: 200, etag: et, data: j };
+    return { ok:true, status:200, etag: et, data: j };
   }
 
-  // ---- Injeção ----
-  function injectOrReplaceScript(id, code) { const old = document.getElementById(id); if (old) old.remove(); const s = document.createElement('script'); s.id = id; s.async = false; s.textContent = code; (document.head || document.documentElement).appendChild(s); }
-  function injectFromBase64(contentB64, path) { const clean = (contentB64 || '').replace(/\s+/g, ''); const decoded = atob(clean); const sid = `injected-${(path || '').replace(/[^\w-]/g, '-')}`; injectOrReplaceScript(sid, decoded); injectedSids.add(sid); }
-  function rollbackInjected(year) {
-    injectedSids.forEach(id => { const el = document.getElementById(id); if (el) el.remove(); });
+  // ===== CryptoJS (garante antes de decriptar) =====
+  async function ensureCryptoJS(){
+    if (window.CryptoJS) return;
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js";
+      s.async=true; s.onload=res; s.onerror=()=>rej(new Error('CryptoJS load fail'));
+      document.head.appendChild(s);
+    });
+  }
+
+  // ===== Injeção =====
+  function injectOrReplaceScript(id, code){ const old=document.getElementById(id); if(old) old.remove(); const s=document.createElement('script'); s.id=id; s.async=false; s.textContent=code; (document.head||document.documentElement).appendChild(s); }
+  function injectFromBase64(contentB64, path){ const clean=(contentB64||'').replace(/\s+/g,''); const decoded=atob(clean); const sid=`injected-${(path||'').replace(/[^\w-]/g,'-')}`; injectOrReplaceScript(sid, decoded); injectedSids.add(sid); }
+  function rollbackInjected(year){
+    injectedSids.forEach(id=>{ const el=document.getElementById(id); if(el) el.remove(); });
     injectedSids.clear();
-    Object.entries(SLUG_TO_FULL).forEach(([slug, full]) => { const key = `_${full}${year}Encrypted`; try { delete window[key]; } catch { } });
-    try { delete window.monthsData; } catch { }
+    Object.entries(SLUG_TO_FULL).forEach(([slug,full])=>{ const key=`_${full}${year}Encrypted`; try{ delete window[key]; }catch{} });
+    try{ delete window.monthsData; }catch{}
   }
 
-  // ---- Callbacks de UI: habilita botão do mês assim que carregar ----
-  function onMonthReady(slug) {
-    // Ex.: botões com data-month="janeiro" etc.
+  // ===== UI: habilita botão do mês quando disponível =====
+  function onMonthReady(slug){
     const btn = document.querySelector(`[data-month="${slug}"]`);
-    if (btn) { btn.disabled = false; btn.classList.remove('is-loading', 'is-disabled'); }
-    if (typeof markMonthAsReady === 'function') markMonthAsReady(slug); // hook opcional
+    if (btn) { btn.disabled = false; btn.classList.remove('is-loading','is-disabled'); }
+    if (typeof markMonthAsReady === 'function') markMonthAsReady(slug);
   }
 
-  // ---- Pipeline com cache e habilitação progressiva ----
-  async function loadMonthWithCache(year, slug) {
+  // ===== Pipeline por mês (cache-first seguro; cache não autoriza) =====
+  async function loadMonthWithCache(year, slug){
     const kB = keyB64(year, slug);
     const kM = keyMeta(year, slug);
     const cachedB64 = LS.get(kB);
     const metaRaw = LS.get(kM);
-    let meta = null; try { meta = metaRaw ? JSON.parse(metaRaw) : null; } catch { }
+    let meta = null; try{ meta = metaRaw ? JSON.parse(metaRaw) : null; }catch{}
 
+    // pinta rápido se tem cache (não autoriza sessão)
     if (cachedB64) { injectFromBase64(cachedB64, meta?.path || `data/${year}/${slug}.js`); onMonthReady(slug); }
 
+    // baixa / revalida
     const r = await fetchMonth(year, slug, meta?.etag);
     if (!r.ok) {
       if (!cachedB64) throw new Error(`month ${slug}: ${r.error || r.status}`);
-      return { slug, networkOk: false, source: 'cache-fallback' };
+      return { slug, networkOk:false, source:'cache-fallback' };
     }
-    if (r.status === 304) return { slug, networkOk: false, source: 'cache' };
+    if (r.status === 304) return { slug, networkOk:false, source:'cache' };
 
     if (r.data?.content) {
       LS.set(kB, r.data.content);
       LS.set(kM, JSON.stringify({ path: r.data.path || `data/${year}/${slug}.js`, etag: r.etag || null, tsCached: Date.now() }));
       injectFromBase64(r.data.content, r.data.path);
       onMonthReady(slug);
-      return { slug, networkOk: true, source: cachedB64 ? 'updated' : 'network' };
+      return { slug, networkOk:true, source: cachedB64 ? 'updated' : 'network' };
     }
-    return { slug, networkOk: false, source: 'empty' };
+    return { slug, networkOk:false, source:'empty' };
   }
 
-  // ---- Seleção de meses a buscar (não além do mês atual) ----
-  function monthsForYear(year) {
+  // ===== Seleção de meses (não além do mês atual) =====
+  function monthsForYear(year){
     const now = new Date(); const yNow = now.getFullYear(); const mNow = now.getMonth(); // 0..11
-    if (year < yNow) return MONTH_SLUGS.slice();       // todos os 12
-    if (year > yNow) return [];                        // nenhum
+    if (year < yNow) return MONTH_SLUGS.slice();       // 12 meses
+    if (year > yNow) return [];                        // 0
     return MONTH_SLUGS.slice(0, mNow + 1);             // até o mês atual
   }
 
-  // ---- Carregamento paralelo (todos de uma vez para máxima velocidade) ----
-  async function loadYearAllAtOnce(year) {
+  // ===== Carregamento paralelo (12 de uma vez no ano vigente) =====
+  async function loadYearAllAtOnce(year){
     const months = monthsForYear(year);
     const promises = months.map(slug =>
-      loadMonthWithCache(year, slug).then(r => ({ ok: true, r })).catch(err => ({ ok: false, slug, err: String(err) }))
+      loadMonthWithCache(year, slug).then(r=>({ok:true,r})).catch(err=>({ok:false,slug,err:String(err)}))
     );
     const settled = await Promise.all(promises);
     let networkSuccess = 0;
-    for (const it of settled) {
+    for (const it of settled){
       if (it.ok && it.r.networkOk) networkSuccess++;
     }
-    return { settled, networkSuccess, monthsCount: months.length };
+    return { networkSuccess, monthsCount: months.length };
   }
 
-  // ---- Boot/UI ----
-  function startUI() {
-    const modal = document.getElementById('password-modal'); if (modal) modal.style.display = 'none';
-    const main = document.getElementById('dashboard-main'); if (main) main.style.display = 'block';
-    const dataMonths = (typeof getMonthData === 'function') ? getMonthData() : (window.monthsData || {});
-    if (typeof initializeMonthSelector === 'function') initializeMonthSelector(dataMonths);
-    if (typeof updateDashboard === 'function') updateDashboard(dataMonths);
-    if (typeof initializeExportBlock === 'function') initializeExportBlock(dataMonths);
-    if (typeof initializeModals === 'function') initializeModals();
+  // ===== Decriptação e montagem dos dados =====
+  function safeDecrypt(b64str, pass){
+    if (!b64str || typeof b64str!=='string') return null;
+    try{
+      const bytes = CryptoJS.AES.decrypt(b64str, pass);
+      const txt = bytes.toString(CryptoJS.enc.Utf8);
+      return txt || null;
+    }catch{ return null; }
+  }
+  function loadYearDataEncrypted(year){
+    const map = {};
+    for (const [slug, Full] of Object.entries(SLUG_TO_FULL)){
+      const key = `_${Full}${year}Encrypted`;
+      const enc = window[key];
+      if (!enc) continue;
+      const dec = safeDecrypt(enc, window._dashboardPassword);
+      if (!dec) continue;
+      try{ map[slug] = JSON.parse(dec); }catch{}
+    }
+    window.monthsData = map;
   }
 
-  async function handleEnter() {
+  // ===== Boot/UI =====
+  function startUI(){
+    const modal = document.getElementById('password-modal'); if (modal) modal.style.display='none';
+    const main = document.getElementById('dashboard-main'); if (main) main.style.display='block';
+    const dataMonths = (typeof getMonthData==='function') ? getMonthData() : (window.monthsData||{});
+    if (typeof initializeMonthSelector==='function') initializeMonthSelector(dataMonths);
+    if (typeof updateDashboard==='function') updateDashboard(dataMonths);
+    if (typeof initializeExportBlock==='function') initializeExportBlock(dataMonths);
+    if (typeof initializeModals==='function') initializeModals();
+  }
+
+  async function handleEnter(){
     const passEl = document.getElementById('site-password');
     const errEl = document.getElementById('password-error');
     errEl.style.display = 'none';
-    const pwd = (passEl.value || '').trim();
-    if (!pwd) { errEl.style.display = 'block'; errEl.textContent = 'Informe a senha.'; return; }
+    const pwd = (passEl.value||'').trim();
+    if (!pwd){ errEl.style.display='block'; errEl.textContent='Informe a senha.'; return; }
 
-    try {
+    try{
       setLoading(true);
 
-      // limpa cache se senha mudou
+      // 1) autentica (fail-fast) — e não altera a senha
+      await auth(pwd);
+      window._dashboardPassword = `${pwd}${pwd.slice(0, -2)}`;
+
+      // 2) invalida cache se senha mudou
       const newHash = await sha256Hex(pwd);
       const prevHash = LS.get(keyPass());
       if (prevHash && prevHash !== newHash) clearNamespace();
       LS.set(keyPass(), newHash);
 
-      // 1) valida senha (token)
-      await auth(pwd);
-
-      // 2) carrega meses permitidos (progressivo) — ano vigente por padrão
+      // 3) carrega meses (somente até o mês atual) — habilita botões conforme chegam
       const year = new Date().getFullYear();
       window.definedYear = year;
 
       const { networkSuccess, monthsCount } = await loadYearAllAtOnce(year);
 
-      // exige pelo menos 1 200 OK para liberar UI
+      // exige pelo menos 1 200 OK quando houver meses a carregar
       if (monthsCount > 0 && networkSuccess === 0) {
         rollbackInjected(year);
         throw new Error('invalid_password_or_origin');
       }
 
-      // 3) monta monthsData e inicia
-      if (monthsCount > 0) {
-        loadYearDataEncrypted(year);
-      } else {
-        // ano futuro (sem meses) — garante objeto vazio
-        window.monthsData = window.monthsData || {};
-      }
+      // 4) garantir CryptoJS e montar dados
+      await ensureCryptoJS();
+      if (monthsCount > 0) loadYearDataEncrypted(year);
+      else window.monthsData = window.monthsData || {};
+
       passEl.value = '';
       startUI();
-    } catch (e) {
+    } catch(e){
       console.error(e);
-      errEl.style.display = 'block';
-      errEl.textContent = 'Senha inválida ou origem não permitida.';
+      errEl.style.display='block';
+      errEl.textContent='Senha inválida ou origem não permitida.';
     } finally {
       setLoading(false);
     }
