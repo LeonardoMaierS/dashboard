@@ -12,10 +12,6 @@ window.addEventListener('DOMContentLoaded', function () {
   function injectStyles() {
     if (document.getElementById('auth-styles')) return;
     const css = `
-    :root{
-      --bg:#0f252b; --card:#14323a; --card-2:#1b3c45; --text:#eaf7fb; --muted:#9cc7d1; --accent:#2a5862; --accent-2:#316b77; --danger:#e05d6f;
-      --radius:16px; --shadow:0 12px 40px rgba(0,0,0,.45);
-    }
     #password-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999;padding:24px}
     .auth-card{width:min(92vw,380px);background:linear-gradient(180deg,var(--card),var(--card-2));border-radius:var(--radius);box-shadow:var(--shadow);padding:28px}
     .auth-title{color:var(--text);font-weight:800;font-size:18px;letter-spacing:.3px;margin:0 0 6px}
@@ -80,10 +76,35 @@ window.addEventListener('DOMContentLoaded', function () {
         <div class="gcard"><span class="gspin" aria-hidden="true"></span> <span>Carregando dados…</span></div>
       </div>
     `);
+
+    const eye = document.getElementById('toggle-eye');
+    const input = document.getElementById('site-password');
+    eye.addEventListener('click', () => {
+      const t = input.getAttribute('type') === 'password' ? 'text' : 'password';
+      input.setAttribute('type', t);
+    });
+
     document.getElementById('password-btn').onclick = handleEnter;
-    document.getElementById('site-password').addEventListener('keydown', (e) => { if (e.key === 'Enter') handleEnter(); });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleEnter(); });;
   }
-  function setLoading(on) { const o = document.getElementById('global-loader'); if (o) o.style.display = on ? 'flex' : 'none'; }
+
+  function setLoading(state){
+    const btn = document.getElementById('password-btn');
+    const input = document.getElementById('site-password');
+    const overlay = document.getElementById('global-loader');
+
+    if (state){
+      btn.classList.add('loading');
+      btn.disabled = true;
+      input.disabled = true;
+      overlay.style.display = 'flex';
+    } else {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      input.disabled = false;
+      overlay.style.display = 'none';
+    }
+  }
 
   // Cache + Hash
   const LS = {

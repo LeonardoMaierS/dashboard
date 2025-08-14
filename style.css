@@ -13,6 +13,16 @@
   --radius-lg: 16px;
   --radius-xl: 24px;
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --bg: #0f252b;
+  --card: #14323a;
+  --card-2: #1b3c45;
+  --text: #eaf7fb;
+  --muted: #9cc7d1;
+  --accent: #2a5862;
+  --accent-2: #316b77;
+  --danger: #e05d6f;
+  --radius: 16px;
+  --shadow: 0 12px 40px rgba(0, 0, 0, .45);
 }
 
 * {
