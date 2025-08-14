@@ -65,8 +65,7 @@ window.addEventListener('DOMContentLoaded', function () {
           </div>
 
           <button id="password-btn" class="auth-btn">
-            <span class="btn-label">Entrar</span>
-            <span class="btn-spinner" aria-hidden="true"></span>
+            <span class="btn-label">Entrar</span>            
           </button>
           <div id="password-error" class="auth-err"></div>
         </div>
