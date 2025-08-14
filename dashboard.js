@@ -162,9 +162,6 @@ function initializeMonthSelector(dataMonths) {
   timeline.innerHTML = '';
 
   Object.keys(dataMonths).forEach(monthKey => {
-    const monthObj = dataMonths[monthKey];
-    if (!monthObj) return;
-
     const isAvailable = !!monthObj.available && Object.keys(monthObj.historicoDiario || {}).length > 0;
 
     const card = document.createElement('div');

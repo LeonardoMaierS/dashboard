@@ -196,17 +196,6 @@ window.addEventListener('DOMContentLoaded', function () {
     return { networkSuccess, monthsCount: months.length };
   }
 
-  // ===== Decriptação e montagem dos dados =====
-  function safeDecrypt(b64str, pass) {
-    if (!b64str || typeof b64str !== 'string') return null;
-    try {
-      const bytes = CryptoJS.AES.decrypt(b64str, pass);
-      const txt = bytes.toString(CryptoJS.enc.Utf8);
-      return txt || null;
-    } catch { return null; }
-  }
-
-  // ===== Boot/UI =====
   function startUI() {
     const dataMonths = getMonthData();
 
@@ -214,6 +203,10 @@ window.addEventListener('DOMContentLoaded', function () {
     const main = document.getElementById('dashboard-main'); if (main) main.style.display = 'block';
 
     setLoading(false);
+
+    console.log("dataMonths 1")
+    console.log(dataMonths)
+    console.log("dataMonths 2")
 
     initializeMonthSelector(dataMonths);
     updateDashboard(dataMonths);
