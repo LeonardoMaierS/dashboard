@@ -229,7 +229,7 @@ function updateDashboard(dataMonths) {
   }
 }
 
-function updateKPIs(updateKPIs) {
+function updateKPIs(dataMonths) {
   const grid = document.getElementById('kpiGrid');
   grid.innerHTML = '';
 

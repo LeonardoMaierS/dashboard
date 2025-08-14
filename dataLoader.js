@@ -33,7 +33,6 @@ function loadEncryptedMonth(month, year ) {
 
     window.monthsData = { ...window.monthsData, ...emptyMonth }
   } catch (error) {
-    console.log(error)
     throw error;
   }
 }

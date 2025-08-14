@@ -196,10 +196,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
     setLoading(false);
 
-    console.log("dataMonths 1")
-    console.log(dataMonths)
-    console.log("dataMonths 2")
-
     initializeMonthSelector(dataMonths);
     updateDashboard(dataMonths);
     initializeExportBlock(dataMonths);
