@@ -1432,13 +1432,6 @@ document.querySelectorAll('.custom-select').forEach((select) => {
 
   const dataMonths = getMonthData();
 
-  const _reset = () => {
-    selectedMonths = []
-    initializeMonthSelector(dataMonths)
-    updateDashboard(dataMonths)
-    initializeModals()
-  }
-
   options.forEach(function (option) {
     option.addEventListener('click', function (e) {
       e.stopPropagation()
@@ -1447,10 +1440,11 @@ document.querySelectorAll('.custom-select').forEach((select) => {
       valueSpan.textContent = option.textContent
       select.classList.remove('open')
 
-      if (select.id === 'yearCustomSelect' || select.id === 'platformCustomSelect') {
-        document.getElementById('selected-months-blocks').innerHTML = ''
-        _reset()
-      }
+      document.getElementById('selected-months-blocks').innerHTML = ''
+      selectedMonths = []
+      initializeMonthSelector(dataMonths)
+      updateDashboard(dataMonths)
+      initializeModals()
     });
   });
 
