@@ -4,7 +4,7 @@ let monthsBlocksRendered = []
 
 function getMonthData(platform) {
   let data = {};
-  const monthObj = window.monthsData;
+  const monthObj = window.monthsData ?? {};
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platform || platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase()
 
