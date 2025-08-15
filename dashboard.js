@@ -3,8 +3,6 @@ let selectedMonths = []
 let monthsBlocksRendered = []
 
 function getMonthData(platform) {
-  loadYearDataEncrypted()
-
   let data = {};
   const monthObj = window.monthsData;
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
