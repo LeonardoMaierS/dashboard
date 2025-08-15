@@ -146,7 +146,7 @@ body {
 }
 
 .month-card.selected {
-  background: var(--brand);
+  background: var(--surface);
   color: var(--text-primary);
   box-shadow: 0 6px 24px #00151c44;
   transform: translateY(-1.5px) scale(1.04);

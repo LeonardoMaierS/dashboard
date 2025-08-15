@@ -143,11 +143,6 @@ function initializeMonthSelector(dataMonths, flag) {
 
     const isAvailable = !!monthObj.available && Object.keys(monthObj.historicoDiario || {}).length > 0;
 
-    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA 1")
-    console.log(selectedMonths)
-    console.log(monthKey)
-    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA 2 ")
-
     const card = document.createElement('div');
 
     if (isAvailable) {
@@ -185,10 +180,6 @@ function toggleMonth(monthKey, dataMonths) {
       return ordemMeses.indexOf(ma.name) - ordemMeses.indexOf(mb.name);
     });
   }
-
-  console.log("-------------------")
-  console.log(selectedMonths)
-  console.log("-------------------")
 
   initializeModals();
   updateDashboard(dataMonths);

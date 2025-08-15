@@ -130,14 +130,11 @@ window.addEventListener('DOMContentLoaded', function () {
           }
 
           contHeaderLoader -= 1
-
           startUI()
         })
-        .catch(err => {
-          console.error(err)
-
+        .catch(e => {
+          console.error(e)
           contHeaderLoader -= 1
-
           startUI()
         })
     );
