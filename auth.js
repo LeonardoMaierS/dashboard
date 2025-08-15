@@ -188,6 +188,24 @@ window.addEventListener('DOMContentLoaded', function () {
       await auth(pwd);
 
       if (BEARER) {
+        months.map(month => {
+          const monthA = month.charAt(0).toUpperCase() + month.slice(1);
+          const key = `_${monthA}${year}Encrypted`;
+          window[key] = data.content.split('`')[1];
+
+          if (window.monthsData?.[`${month}${year}`]?.mobile?.available ||
+            window.monthsData?.[`${month}${year}`]?.mobile?.available) return
+
+          const emptyMonth = {
+            [`${month}${year}`]: {
+              mobile: { name: month, year: year, available: false, historicoDiario: {} },
+              desktop: { name: month, year: year, available: false, historicoDiario: {} }
+            }
+          }
+
+          window.monthsData = { ...window.monthsData, ...emptyMonth }
+        })
+
         window._dashboardPassword = `${pwd}${pwd.slice(0, -2)}`;
 
         await loadYearAllAtOnce();
