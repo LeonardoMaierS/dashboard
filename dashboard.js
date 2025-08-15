@@ -102,6 +102,10 @@ function getMonthData(platform) {
     }
   });
 
+console.log("______________________________")
+console.log(data)
+console.log("______________________________")
+
   return data;
 }
 

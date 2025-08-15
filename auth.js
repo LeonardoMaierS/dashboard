@@ -186,10 +186,12 @@ window.addEventListener('DOMContentLoaded', function () {
           if (window.monthsData?.[`${month}${year}`]?.mobile?.available ||
             window.monthsData?.[`${month}${year}`]?.mobile?.available) return
 
+          const nameMonth = month.charAt(0).toUpperCase() + month.slice(1);
+
           const emptyMonth = {
             [`${month}${year}`]: {
-              mobile: { name: month, year: year, available: false, historicoDiario: {} },
-              desktop: { name: month, year: year, available: false, historicoDiario: {} }
+              mobile: { name: nameMonth, year: year, available: false, historicoDiario: {} },
+              desktop: { name: nameMonth, year: year, available: false, historicoDiario: {} }
             }
           }
 
