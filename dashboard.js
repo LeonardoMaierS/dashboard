@@ -143,20 +143,20 @@ function initializeMonthSelector(dataMonths, flag) {
 
     const isAvailable = !!monthObj.available && Object.keys(monthObj.historicoDiario || {}).length > 0;
 
-
     console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA 1")
     console.log(selectedMonths)
     console.log(monthKey)
     console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA 2 ")
 
     const card = document.createElement('div');
+
+    if (isAvailable) {
+      card.addEventListener('click', function () { toggleMonth(monthKey, dataMonths) })
+    }
+
     card.className = `month-card${!isAvailable ? ' disabled' : ''}${selectedMonths.includes(monthKey) ? ' selected' : ''}`;
     card.dataset.month = monthKey;
     card.innerHTML = `<div class="month-name">${monthObj.name}</div><div class="month-year">${monthObj.year}</div>`;
-
-    if (isAvailable && !flag) {
-      card.addEventListener('click', function () { toggleMonth(monthKey, dataMonths) })
-    }
 
     timeline.appendChild(card);
   });
@@ -190,11 +190,9 @@ function toggleMonth(monthKey, dataMonths) {
   console.log(selectedMonths)
   console.log("-------------------")
 
-  const flag = true
-
   initializeModals();
   updateDashboard(dataMonths);
-  initializeMonthSelector(dataMonths, flag)
+  initializeMonthSelector(dataMonths)
 }
 
 function updateDashboard(dataMonths) {
