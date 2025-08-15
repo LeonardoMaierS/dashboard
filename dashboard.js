@@ -147,6 +147,12 @@ function initializeMonthSelector(dataMonths) {
 
     const isAvailable = !!monthObj.available && Object.keys(monthObj.historicoDiario || {}).length > 0;
 
+
+    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA 1")
+    console.log(selectedMonths)
+    console.log(monthKey)
+    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA 2 ")
+
     const card = document.createElement('div');
     card.className = `month-card${!isAvailable ? ' disabled' : ''}${selectedMonths.includes(monthKey) ? ' selected' : ''}`;
     card.dataset.month = monthKey;
