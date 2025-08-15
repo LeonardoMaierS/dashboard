@@ -1441,6 +1441,12 @@ document.querySelectorAll('.custom-select').forEach((select) => {
       option.classList.add('selected')
       valueSpan.textContent = option.textContent
       select.classList.remove('open')
+      document.getElementById('selected-months-blocks').innerHTML = ''
+      const dataMonths = getMonthData();
+      selectedMonths = []
+      initializeMonthSelector(dataMonths)
+      updateDashboard(dataMonths)
+      initializeModals()
     });
   });
 
@@ -1449,17 +1455,6 @@ document.querySelectorAll('.custom-select').forEach((select) => {
       select.classList.remove('open')
     }
   });
-
-
-  document.getElementById('selected-months-blocks').innerHTML = ''
-
-  const dataMonths = getMonthData();
-
-  selectedMonths = []
-
-  initializeMonthSelector(dataMonths)
-  updateDashboard(dataMonths)
-  initializeModals()
 });
 
 function initializeExportBlock(dataMonths) {
