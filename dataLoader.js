@@ -20,13 +20,11 @@ function loadEncryptedMonth(month, year) {
     const encData = window[key];
 
     // Caso ja tenha os dados do mes não precisa seguir
-    console.log(window.monthsData[`${month}${year}`])
-    console.log("---------------------------------")
-    console.log(window.monthsData[`${month}${year}`]?.available)
-    if (window.monthsData[`${month}${year}`]?.available){
+    if (window.monthsData[`${month}${year}`]?.mobile?.available && window.monthsData[`${month}${year}`]?.desktop?.available) {
       console.log("ENTROU")
+      console.log(`${month}${year}`)
       return
-    } 
+    }
 
     let emptyMonth = {
       [`${month}${year}`]: {
@@ -37,7 +35,7 @@ function loadEncryptedMonth(month, year) {
 
     if (encData) {
       console.log("DECRIPTANDO....")
-      
+
       const decrypted = CryptoJS.AES.decrypt(encData, window._dashboardPassword).toString(CryptoJS.enc.Utf8);
       const decryptedParse = JSON.parse(decrypted);
 
