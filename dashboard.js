@@ -182,6 +182,10 @@ function toggleMonth(monthKey, dataMonths) {
     });
   }
 
+  console.log("-------------------")
+  console.log(selectedMonths)
+  console.log("-------------------")
+
   initializeModals();
   updateDashboard(dataMonths);
 }
@@ -1441,9 +1445,14 @@ document.querySelectorAll('.custom-select').forEach((select) => {
       option.classList.add('selected')
       valueSpan.textContent = option.textContent
       select.classList.remove('open')
-      document.getElementById('selected-months-blocks').innerHTML = ''
+
+      if (select.id === 'platformCustomSelect') {
+        selectedMonths = []
+        document.getElementById('selected-months-blocks').innerHTML = ''
+      }
+
       const dataMonths = getMonthData();
-      selectedMonths = []
+
       initializeMonthSelector(dataMonths)
       updateDashboard(dataMonths)
       initializeModals()
