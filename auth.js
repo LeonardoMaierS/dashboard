@@ -69,34 +69,6 @@ window.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  /*
-  // Cache + Hash
-  const LS = {
-    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
-    set(k, v) { try { localStorage.setItem(k, v); } catch { } },
-    del(k) { try { localStorage.removeItem(k); } catch { } },
-    keys() { try { return Object.keys(localStorage); } catch { return []; } }
-  };
-
-  const keyB64 = (y, slug) => `${CACHE_NS}:${y}:${slug}:b64`;
-  const keyMeta = (y, slug) => `${CACHE_NS}:${y}:${slug}:meta`;
-  const keyPass = () => `${CACHE_NS}:lastPassHash`;
-
-  async function sha256Hex(t) {
-    const e = new TextEncoder().encode(t);
-    const b = await crypto.subtle.digest('SHA-256', e);
-
-    return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join('');
-  }
-
-  function clearNamespace() {
-    LS.keys().forEach(k => {
-      if (k.startsWith(`${CACHE_NS}:`))
-        LS.del(k);
-    });
-  }
-  */
-
   async function auth(password) {
     const res = await fetch(`${API_BASE}/auth`, {
       method: 'POST',
@@ -130,75 +102,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
     return { ok: true, status: 200, data: j };
   }
-
-  /*
-  // ===== CryptoJS (garante antes de decriptar) =====
-  async function ensureCryptoJS() {
-    if (window.CryptoJS) return;
-
-    await new Promise((res, rej) => {
-      const s = document.createElement('script');
-      s.src = "https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js";
-      s.async = true; s.onload = res; s.onerror = () => rej(new Error('CryptoJS load fail'));
-      document.head.appendChild(s);
-    });
-  }
-
-  function injectOrReplaceScript(id, code) {
-    const old = document.getElementById(id);
-
-    if (old) old.remove();
-
-    const s = document.createElement('script');
-    s.id = id;
-    s.async = false;
-    s.textContent = code;
-
-    (document.head || document.documentElement).appendChild(s);
-  }
-
-  function injectFromBase64(contentB64, path) {
-    const clean = (contentB64 || '').replace(/\s+/g, '');
-    const decoded = atob(clean);
-    const sid = `injected-${(path || '').replace(/[^\w-]/g, '-')}`;
-    injectOrReplaceScript(sid, decoded); injectedSids.add(sid);
-  }
-
-  // ===== Pipeline por mês (cache-first seguro; cache não autoriza) =====
-  async function loadMonthWithCache(year, month) {
-    // const kB = keyB64(year, month);
-    // const kM = keyMeta(year, month);
-    // const cachedB64 = LS.get(kB);
-    // const metaRaw = LS.get(kM);
-    // let meta = null; try { meta = metaRaw ? JSON.parse(metaRaw) : null; } catch { }
-
-    // if (cachedB64) {      injectFromBase64(cachedB64, meta?.path || `data/${year}/${month}.js`);    }
-
-    return await fetchMonth(year, month);
-
-    if (!r.ok) {
-      // if (!cachedB64)        throw new Error(`month ${month}: ${r.error || r.status}`);
-
-      return { month, networkOk: false, source: 'cache-fallback' };
-    }
-
-    if (r.status === 304) {
-      return { month, networkOk: false, source: 'cache' };
-    }
-
-    if (r.data?.content) {
-      // LS.set(kB, r.data.content);
-      // LS.set(kM, JSON.stringify({ path: r.data.path || `data/${year}/${month}.js`, etag: r.etag || null, tsCached: Date.now() }));
-      // injectFromBase64(r.data.content, r.data.path);
-
-      startUI()
-
-      return // { month, networkOk: true, source: cachedB64 ? 'updated' : 'network' };
-    }
-
-    return // { month, networkOk: false, source: 'empty' };
-  }
-  */
 
   // ===== Carregamento paralelo =====
   async function loadYearAllAtOnce() {
@@ -256,7 +159,6 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   async function handleEnter() {
-
     const passEl = document.getElementById('site-password');
     const errEl = document.getElementById('password-error');
     errEl.style.display = 'none';
@@ -270,12 +172,14 @@ window.addEventListener('DOMContentLoaded', function () {
 
       await auth(pwd);
 
-      window._dashboardPassword = `${pwd}${pwd.slice(0, -2)}`;
+      if (BEARER) {
+        window._dashboardPassword = `${pwd}${pwd.slice(0, -2)}`;
 
-      await loadYearAllAtOnce();
+        await loadYearAllAtOnce();
 
-      passEl.value = '';
-      startUI();
+        passEl.value = '';
+        startUI();
+      }
     } catch (e) {
       console.error(e);
       errEl.style.display = 'block';
