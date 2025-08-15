@@ -1,44 +1,9 @@
 window.addEventListener('DOMContentLoaded', function () {
   const API_BASE = window.ENV.REMOTE_BASE_URL;
-  // const CACHE_NS = "dash:v1";
   const MONTH_SLUGS = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-  // const injectedSids = new Set();
   let BEARER = null;
 
-  injectStyles();
   ensurePasswordModal();
-
-  function injectStyles() {
-    if (document.getElementById('auth-styles')) return;
-    const css = `
-    #password-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:9999;padding:24px}
-    .auth-card{width:min(92vw,380px);background:linear-gradient(180deg,var(--card),var(--card-2));border-radius:var(--radius);box-shadow:var(--shadow);padding:28px}
-    .auth-title{color:var(--text);font-weight:800;font-size:18px;letter-spacing:.3px;margin:0 0 6px}
-    .auth-sub{color:var(--muted);font-size:13px;margin:0 0 18px}
-    .auth-field{display:flex;gap:8px;align-items:center;background:#102a30;border:1px solid #1e4149;border-radius:10px;padding:10px 12px}
-    .auth-input{flex:1;background:transparent;border:0;outline:0;color:var(--text);font-size:15px}
-    .auth-eye{cursor:pointer;opacity:.8}
-    .auth-btn{width:100%;margin-top:12px;background:var(--accent);color:var(--text);border:0;border-radius:10px;padding:12px 14px;font-weight:800;font-size:15px;cursor:pointer;transition:.2s}
-    .auth-btn:hover{background:var(--accent-2)}
-    .auth-err{display:none;color:var(--danger);font-size:13px;margin-top:10px}
-    .brand{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-    .brand i{width:32px;height:32px;border-radius:8px;background:#19414a;display:inline-flex;align-items:center;justify-content:center}
-    .brand svg{width:18px;height:18px;opacity:.9}
-    /* botão com spinner */
-    .loading .btn-label{opacity:0}
-    .loading .btn-spinner{display:inline-block}
-    .btn-spinner{display:none;width:18px;height:18px;border-radius:50%;border:2px solid rgba(234,247,251,.25);border-top-color:var(--text);animation:spin .9s linear infinite;vertical-align:middle}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    /* overlay global */
-    #global-loader{position:fixed;inset:0;background:rgba(10,20,24,.6);backdrop-filter:saturate(120%) blur(2px);display:none;align-items:center;justify-content:center;z-index:10000}
-    .gcard{background:linear-gradient(180deg,var(--card),var(--card-2));padding:14px 18px;border-radius:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;color:var(--text);font-weight:700}
-    .gspin{width:18px;height:18px;border-radius:50%;border:2px solid rgba(234,247,251,.25);border-top-color:var(--text);animation:spin .9s linear infinite}
-    `;
-    const s = document.createElement('style');
-    s.id = 'auth-styles';
-    s.textContent = css;
-    document.head.appendChild(s);
-  }
 
   function ensurePasswordModal() {
     if (document.getElementById('password-modal')) return;
@@ -178,9 +143,7 @@ window.addEventListener('DOMContentLoaded', function () {
       document.head.appendChild(s);
     });
   }
-    */
 
-  /*
   function injectOrReplaceScript(id, code) {
     const old = document.getElementById(id);
 
@@ -200,7 +163,6 @@ window.addEventListener('DOMContentLoaded', function () {
     const sid = `injected-${(path || '').replace(/[^\w-]/g, '-')}`;
     injectOrReplaceScript(sid, decoded); injectedSids.add(sid);
   }
-  */
 
   // ===== Pipeline por mês (cache-first seguro; cache não autoriza) =====
   async function loadMonthWithCache(year, month) {
@@ -214,7 +176,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
     return await fetchMonth(year, month);
 
-    /*
     if (!r.ok) {
       // if (!cachedB64)        throw new Error(`month ${month}: ${r.error || r.status}`);
 
@@ -236,8 +197,8 @@ window.addEventListener('DOMContentLoaded', function () {
     }
 
     return // { month, networkOk: false, source: 'empty' };
-    */
   }
+  */
 
   // ===== Carregamento paralelo =====
   async function loadYearAllAtOnce() {
@@ -256,13 +217,16 @@ window.addEventListener('DOMContentLoaded', function () {
           const key = `_${monthA}${year}Encrypted`;
           window[key] = data.content
 
-          startUI()
-
           contHeaderLoader -= 1
+
+          startUI()
         })
         .catch(err => {
-          contHeaderLoader -= 1
           console.error(err)
+
+          contHeaderLoader -= 1
+
+          startUI()
         })
     );
 
@@ -292,34 +256,22 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   async function handleEnter() {
-    const passEl = document.getElementById('site-password');
-    const errEl = document.getElementById('password-error');
-    errEl.style.display = 'none';
-
-    const pwd = (passEl.value || '').trim();
-
-    if (!pwd) { errEl.style.display = 'block'; errEl.textContent = 'Informe a senha.'; return; }
-
     try {
+      const passEl = document.getElementById('site-password');
+      const errEl = document.getElementById('password-error');
+      errEl.style.display = 'none';
+
+      const pwd = (passEl.value || '').trim();
+
+      if (!pwd) { errEl.style.display = 'block'; errEl.textContent = 'Informe a senha.'; return; }
+
       setLoading(true);
 
-      // autentica (fail-fast) — e não altera a senha
       await auth(pwd);
 
       window._dashboardPassword = `${pwd}${pwd.slice(0, -2)}`;
 
-      /*
-      // 2) invalida cache se senha mudou
-      const newHash = await sha256Hex(pwd);
-      const prevHash = LS.get(keyPass());
-      if (prevHash && prevHash !== newHash) clearNamespace();
-      LS.set(keyPass(), newHash);
-      */
-
       await loadYearAllAtOnce();
-
-      // garantir CryptoJS
-      // await ensureCryptoJS();
 
       passEl.value = '';
       startUI();
