@@ -102,6 +102,8 @@ function getMonthData(platform) {
     }
   });
 
+  console.log("_----------------------")
+  console.log(data)
   return data;
 }
 
@@ -1453,11 +1455,16 @@ document.querySelectorAll('.custom-select').forEach((select) => {
 
       if (select.id === 'platformCustomSelect') {
         document.getElementById('selected-months-blocks').innerHTML = ''
-        window.definedYear = option.getAttribute('data-value')
 
+        console.log("????????????????????????????? 1")
+        console.log(document.getElementById('selected-months-blocks'))
+        console.log("????????????????????????????? 2")
+
+        const dataMonthsPlatform = getMonthData();
+        
         selectedMonths = []
-        initializeMonthSelector(dataMonths)
-        updateDashboard(dataMonths)
+        initializeMonthSelector(dataMonthsPlatform)
+        updateDashboard(dataMonthsPlatform)
         initializeModals()
       }
     });

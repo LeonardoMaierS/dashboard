@@ -124,17 +124,10 @@ window.addEventListener('DOMContentLoaded', function () {
           const decrypted = CryptoJS.AES.decrypt(window[key], window._dashboardPassword).toString(CryptoJS.enc.Utf8);
           const decryptedParse = JSON.parse(decrypted);
 
-          let emptyMonth = {
-            [`${month}${year}`]: {
-              mobile: { name: month, year: year, available: false, historicoDiario: {} },
-              desktop: { name: month, year: year, available: false, historicoDiario: {} }
-            }
+          if (Object.keys(decryptedParse).length > 0) {
+            const emptyMonth = { [`${month}${year}`]: decryptedParse }
+            window.monthsData = { ...window.monthsData, ...emptyMonth }
           }
-
-          if (Object.keys(decryptedParse).length > 0)
-            emptyMonth = { [`${month}${year}`]: decryptedParse }
-
-          window.monthsData = { ...window.monthsData, ...emptyMonth }
 
           contHeaderLoader -= 1
 
