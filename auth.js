@@ -192,10 +192,6 @@ window.addEventListener('DOMContentLoaded', function () {
         const months = MONTH_SLUGS.slice(0, mNow + 1);
 
         months.map(month => {
-          const monthA = month.charAt(0).toUpperCase() + month.slice(1);
-          const key = `_${monthA}${year}Encrypted`;
-          window[key] = data.content.split('`')[1];
-
           if (window.monthsData?.[`${month}${year}`]?.mobile?.available ||
             window.monthsData?.[`${month}${year}`]?.mobile?.available) return
 
