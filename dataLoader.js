@@ -20,7 +20,13 @@ function loadEncryptedMonth(month, year) {
     const encData = window[key];
 
     // Caso ja tenha os dados do mes não precisa seguir
-    if (window.monthsData[`${month}${year}`]?.available) return
+    console.log(window.monthsData[`${month}${year}`])
+    console.log("---------------------------------")
+    console.log(window.monthsData[`${month}${year}`]?.available)
+    if (window.monthsData[`${month}${year}`]?.available){
+      console.log("ENTROU")
+      return
+    } 
 
     let emptyMonth = {
       [`${month}${year}`]: {
