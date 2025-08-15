@@ -1446,7 +1446,6 @@ document.querySelectorAll('.custom-select').forEach((select) => {
 
       if (select.id === 'yearCustomSelect') {
         window.definedYear = option.getAttribute('data-value')
-        loadYearDataEncrypted()
 
         selectedMonths = []
         initializeMonthSelector(dataMonths)
@@ -1457,7 +1456,6 @@ document.querySelectorAll('.custom-select').forEach((select) => {
       if (select.id === 'platformCustomSelect') {
         document.getElementById('selected-months-blocks').innerHTML = ''
         window.definedYear = option.getAttribute('data-value')
-        loadYearDataEncrypted()
 
         selectedMonths = []
         initializeMonthSelector(dataMonths)

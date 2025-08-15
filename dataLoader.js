@@ -30,6 +30,8 @@ function loadEncryptedMonth(month, year) {
     }
 
     if (encData) {
+      console.log("DECRIPTANDO....")
+      
       const decrypted = CryptoJS.AES.decrypt(encData, window._dashboardPassword).toString(CryptoJS.enc.Utf8);
       const decryptedParse = JSON.parse(decrypted);
 
