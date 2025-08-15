@@ -181,7 +181,7 @@ function toggleMonth(monthKey, dataMonths) {
   }
 
   // TODO - validar necessidade de todos esses
-  initializeMonthSelector(dataMonths);
+  // initializeMonthSelector(dataMonths);
   initializeModals();
   updateDashboard(dataMonths);
 }
