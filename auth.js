@@ -256,15 +256,16 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   async function handleEnter() {
+
+    const passEl = document.getElementById('site-password');
+    const errEl = document.getElementById('password-error');
+    errEl.style.display = 'none';
+
+    const pwd = (passEl.value || '').trim();
+
+    if (!pwd) { errEl.style.display = 'block'; errEl.textContent = 'Informe a senha.'; return; }
+
     try {
-      const passEl = document.getElementById('site-password');
-      const errEl = document.getElementById('password-error');
-      errEl.style.display = 'none';
-
-      const pwd = (passEl.value || '').trim();
-
-      if (!pwd) { errEl.style.display = 'block'; errEl.textContent = 'Informe a senha.'; return; }
-
       setLoading(true);
 
       await auth(pwd);
