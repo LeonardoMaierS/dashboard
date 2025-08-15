@@ -32,6 +32,7 @@ function loadEncryptedMonth(month, year) {
     if (encData) {
 
       console.log('encData 1')
+      console.log(key)
       console.log(encData)
       console.log('encData 3')
 
@@ -42,6 +43,7 @@ function loadEncryptedMonth(month, year) {
 
     window.monthsData = { ...window.monthsData, ...emptyMonth }
   } catch (error) {
+    console.log("ERRO AQUI")
     throw error;
   }
 }
