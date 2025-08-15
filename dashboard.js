@@ -102,10 +102,6 @@ function getMonthData(platform) {
     }
   });
 
-  console.log("______________________________")
-  console.log(data)
-  console.log("______________________________")
-
   return data;
 }
 
@@ -153,17 +149,20 @@ function initializeMonthSelector(dataMonths) {
     console.log(monthKey)
     console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA 2 ")
 
+    if (isAvailable)
+      card.addEventListener('click', function () { toggleMonth(monthKey, dataMonths) })
+
     const card = document.createElement('div');
     card.className = `month-card${!isAvailable ? ' disabled' : ''}${selectedMonths.includes(monthKey) ? ' selected' : ''}`;
     card.dataset.month = monthKey;
     card.innerHTML = `<div class="month-name">${monthObj.name}</div><div class="month-year">${monthObj.year}</div>`;
-    if (isAvailable) {
-      card.addEventListener('click', function () { toggleMonth(monthKey, dataMonths) })
-    }
+
     timeline.appendChild(card);
   });
-}
 
+  initializeModals();
+  updateDashboard(dataMonths);
+}
 
 function toggleMonth(monthKey, dataMonths) {
   const idx = selectedMonths.indexOf(monthKey);
@@ -191,9 +190,6 @@ function toggleMonth(monthKey, dataMonths) {
   console.log("-------------------")
   console.log(selectedMonths)
   console.log("-------------------")
-
-  initializeModals();
-  updateDashboard(dataMonths);
 }
 
 function updateDashboard(dataMonths) {
