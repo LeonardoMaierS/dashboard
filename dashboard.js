@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
   updateDashboard(dataMonths);
 });
 
-function initializeMonthSelector(dataMonths) {
+function initializeMonthSelector(dataMonths, flag) {
   const timeline = document.getElementById('monthTimeline');
   timeline.innerHTML = '';
 
@@ -149,20 +149,19 @@ function initializeMonthSelector(dataMonths) {
     console.log(monthKey)
     console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAA 2 ")
 
-    if (isAvailable)
-      card.addEventListener('click', function () { toggleMonth(monthKey, dataMonths) })
-
     const card = document.createElement('div');
     card.className = `month-card${!isAvailable ? ' disabled' : ''}${selectedMonths.includes(monthKey) ? ' selected' : ''}`;
     card.dataset.month = monthKey;
     card.innerHTML = `<div class="month-name">${monthObj.name}</div><div class="month-year">${monthObj.year}</div>`;
 
+    if (isAvailable && !flag) {
+      card.addEventListener('click', function () { toggleMonth(monthKey, dataMonths) })
+    }
+
     timeline.appendChild(card);
   });
-
-  initializeModals();
-  updateDashboard(dataMonths);
 }
+
 
 function toggleMonth(monthKey, dataMonths) {
   const idx = selectedMonths.indexOf(monthKey);
@@ -190,6 +189,12 @@ function toggleMonth(monthKey, dataMonths) {
   console.log("-------------------")
   console.log(selectedMonths)
   console.log("-------------------")
+
+  const flag = true
+
+  initializeModals();
+  updateDashboard(dataMonths);
+  initializeMonthSelector(dataMonths, flag)
 }
 
 function updateDashboard(dataMonths) {
