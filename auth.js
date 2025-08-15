@@ -189,9 +189,7 @@ window.addEventListener('DOMContentLoaded', function () {
       await auth(pwd);
 
       if (BEARER) {
-        const months = MONTH_SLUGS.slice(0, mNow + 1);
-
-        months.map(month => {
+        MONTH_SLUGS.forEach(month => {
           if (window.monthsData?.[`${month}${year}`]?.mobile?.available ||
             window.monthsData?.[`${month}${year}`]?.mobile?.available) return
 
