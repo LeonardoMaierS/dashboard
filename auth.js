@@ -188,6 +188,8 @@ window.addEventListener('DOMContentLoaded', function () {
       await auth(pwd);
 
       if (BEARER) {
+        const months = MONTH_SLUGS.slice(0, mNow + 1);
+
         months.map(month => {
           const monthA = month.charAt(0).toUpperCase() + month.slice(1);
           const key = `_${monthA}${year}Encrypted`;
