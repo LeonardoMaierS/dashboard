@@ -180,10 +180,10 @@ function toggleMonth(monthKey, dataMonths) {
     });
   }
 
-  // TODO - validar se é necesario
-  // initializeMonthSelector(dataMonths);
-  // initializeModals();
-  // updateDashboard(dataMonths);
+  // TODO - validar necessidade de todos esses
+  initializeMonthSelector(dataMonths);
+  initializeModals();
+  updateDashboard(dataMonths);
 }
 
 function updateDashboard(dataMonths) {
