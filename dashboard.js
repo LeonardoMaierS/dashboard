@@ -102,8 +102,6 @@ function getMonthData(platform) {
     }
   });
 
-  console.log("_----------------------")
-  console.log(data)
   return data;
 }
 
@@ -180,8 +178,6 @@ function toggleMonth(monthKey, dataMonths) {
     });
   }
 
-  // TODO - validar necessidade de todos esses
-  // initializeMonthSelector(dataMonths);
   initializeModals();
   updateDashboard(dataMonths);
 }
@@ -1436,6 +1432,13 @@ document.querySelectorAll('.custom-select').forEach((select) => {
 
   const dataMonths = getMonthData();
 
+  const _reset = () => {
+    selectedMonths = []
+    initializeMonthSelector(dataMonths)
+    updateDashboard(dataMonths)
+    initializeModals()
+  }
+
   options.forEach(function (option) {
     option.addEventListener('click', function (e) {
       e.stopPropagation()
@@ -1444,28 +1447,9 @@ document.querySelectorAll('.custom-select').forEach((select) => {
       valueSpan.textContent = option.textContent
       select.classList.remove('open')
 
-      if (select.id === 'yearCustomSelect') {
-        window.definedYear = option.getAttribute('data-value')
-
-        selectedMonths = []
-        initializeMonthSelector(dataMonths)
-        updateDashboard(dataMonths)
-        initializeModals()
-      }
-
-      if (select.id === 'platformCustomSelect') {
+      if (select.id === 'yearCustomSelect' || select.id === 'platformCustomSelect') {
         document.getElementById('selected-months-blocks').innerHTML = ''
-
-        console.log("????????????????????????????? 1")
-        console.log(document.getElementById('selected-months-blocks'))
-        console.log("????????????????????????????? 2")
-
-        const dataMonthsPlatform = getMonthData();
-        
-        selectedMonths = []
-        initializeMonthSelector(dataMonthsPlatform)
-        updateDashboard(dataMonthsPlatform)
-        initializeModals()
+        _reset()
       }
     });
   });
