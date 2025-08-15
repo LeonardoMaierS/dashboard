@@ -215,7 +215,7 @@ window.addEventListener('DOMContentLoaded', function () {
         .then(({ data }) => {
           const monthA = month.charAt(0).toUpperCase() + month.slice(1);
           const key = `_${monthA}${year}Encrypted`;
-          window[key] = data.content
+          window[key] = data.content.split('`')[1];
 
           contHeaderLoader -= 1
 
