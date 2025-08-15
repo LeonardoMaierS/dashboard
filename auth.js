@@ -3,6 +3,10 @@ window.addEventListener('DOMContentLoaded', function () {
   const MONTH_SLUGS = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
   let BEARER = null;
 
+  const now = new Date();
+  const year = now.getFullYear();
+  const mNow = now.getMonth();
+
   ensurePasswordModal();
 
   function ensurePasswordModal() {
@@ -105,9 +109,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
   // ===== Carregamento paralelo =====
   async function loadYearAllAtOnce() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const mNow = now.getMonth();
     const months = MONTH_SLUGS.slice(0, mNow + 1);
     let contHeaderLoader = months.length
 
