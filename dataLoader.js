@@ -31,13 +31,13 @@ function loadEncryptedMonth(month, year) {
 
     if (encData) {
 
-      console.log('encData 1')
       console.log(key)
+      console.log(window._dashboardPassword)
       console.log(encData)
-      console.log('encData 3')
 
       const decrypted = CryptoJS.AES.decrypt(encData, window._dashboardPassword).toString(CryptoJS.enc.Utf8);
       const decryptedParse = JSON.parse(decrypted);
+
       if (Object.keys(decryptedParse).length > 0) emptyMonth = { [`${month}${year}`]: decryptedParse }
     }
 
