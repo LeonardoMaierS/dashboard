@@ -1597,10 +1597,9 @@ function initMonthRange(year, month){
 function listenMonthRange(dataMonths, monthKey){
   const month = dataMonths[monthKey];
 
-  console.log('month 1')
-  console.log(month)
-  console.log('month 2')
-  // initMonthRange(year, month);
+  const monthIndex = MONTH_SLUGS.indexOf(month.name) + 1;
+
+  initMonthRange(month.year, monthIndex);
 
   const start = document.getElementById('rangeStart');
   const end   = document.getElementById('rangeEnd');
@@ -1619,9 +1618,6 @@ function listenMonthRange(dataMonths, monthKey){
   start.addEventListener("change", onChange);
   end.addEventListener("change", onChange);
 }
-
-
-
 
 document.getElementById('openExportModal').addEventListener('click', () => {
   document.getElementById('exportModal').style.display = 'block';
