@@ -708,9 +708,9 @@ function addSelectedMonthBlock(monthKey) {
     </div>
     <div class="month-range" id="monthRange">
       <label for="rangeStart">De</label>
-      <input type="date" id="rangeStart" name="rangeStart" />
+      <input type="date" id="rangeStart-${month.name}" name="rangeStart-${month.name}" />
       <label for="rangeEnd">Até</label>
-      <input type="date" id="rangeEnd" name="rangeEnd" />
+      <input type="date" id="rangeEnd-${month.name}" name="rangeEnd-${month.name}" />
     </div>
   </div>
 
@@ -1575,21 +1575,20 @@ document.getElementById('btnExportReport').addEventListener('click', () => {
   XLSX.writeFile(wb, `relatorio-buscas-${platformName}-${iniName}_a_${fimName}.xlsx`);
 });
 
-function initMonthRange(year, month) {
-  const start = document.getElementById('rangeStart');
-  const end = document.getElementById('rangeEnd');
+function initMonthRange(year, monthIndex, monthName) {
+  const start = document.getElementById(`rangeStart-${month.name}`);
+  const end = document.getElementById(`rangeEnd-${month.name}`);
 
   console.log("AQUI 1")
+  console.log(year, monthIndex, monthName)
   console.log(start, end)
 
-  if (!(start && end)) {
-
-  };
+  if (!(start && end)) return;
 
   console.log("AQUI 2")
 
-  const first = new Date(year, month - 1, 1);
-  const last = new Date(year, month, 0);
+  const first = new Date(year, monthIndex - 1, 1);
+  const last = new Date(year, monthIndex, 0);
   const toISO = d => d.toISOString().slice(0, 10);
 
   const firstISO = toISO(first);
@@ -1619,15 +1618,13 @@ function listenMonthRange(month) {
   console.log(itens[itens.length - 1])
   console.log("month 4")
 
-  document.getElementById("rangeStart").value = itens[0];
+  // document.getElementById("rangeStart").value = itens[0];
+  // document.getElementById("rangeEnd").value = itens[itens - 1];
 
-  document.getElementById("rangeEnd").value = itens[itens - 1];
+  initMonthRange(month.year, monthIndex, month.name);
 
-
-  initMonthRange(month.year, monthIndex);
-
-  const start = document.getElementById('rangeStart');
-  const end = document.getElementById('rangeEnd');
+  const start = document.getElementById(`rangeStart-${month.name}`);
+  const end = document.getElementById(`rangeEnd-${month.name}`);
 
   console.log("FOI 1")
   console.log(start, end)
