@@ -1609,19 +1609,21 @@ function listenMonthRange(dataMonths, monthKey) {
 
   const monthIndex = MONTHS.indexOf(month.name) + 1;
 
+  const itens = Object.keys(month.historicoDiario)
+
   console.log("month 1")
   console.log(month)
-    console.log("month 2")
-  console.log(Object.keys(month.historicoDiario))
+  console.log("month 2")
+  console.log(itens)
   console.log("month 22")
-  console.log(Object.keys(month.historicoDiario)[0])
+  console.log(itens[0])
   console.log("month 3")
-  console.log(Object.keys(month.historicoDiario)[month.historicoDiario.length - 1])
-    console.log("month 4")
+  console.log(itens[itens.length - 1])
+  console.log("month 4")
 
-    document.getElementById("rangeStart").value = Object.keys(month.historicoDiario)[0];
+  document.getElementById("rangeStart").value = itens[0];
 
-  document.getElementById("rangeEnd").value = Object.keys(month.historicoDiario)[month.historicoDiario.length - 1];
+  document.getElementById("rangeEnd").value = itens[itens - 1];
 
 
   initMonthRange(month.year, monthIndex);
