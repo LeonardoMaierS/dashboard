@@ -699,6 +699,12 @@ canvas {
   overflow: hidden;
 }
 
+.selected-month-block-space {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .selected-month-block-header {
   display: flex;
   align-items: center;
@@ -1756,17 +1762,17 @@ canvas {
 
 .month-range label {
   font-size: 0.9rem;
-  color: #333;
+  color: var(--text-secondary);
 }
 
 .month-range input[type="date"] {
-  padding: 0.35rem 0.6rem;
-  border: 1px solid #d0d4db;
-  border-radius: 0.5rem;
-  background: #fff;
-  font-family: inherit;
+  background: #192f36;
+  color: var(--text-primary);
+  border: 1px solid var(--brand);
+  border-radius: 6px;
+  padding: 6px 10px;
   font-size: 0.9rem;
-  color: #222;
+  padding: 0.35rem 0.6rem;
 }
 
 .month-range input[type="date"]:focus {

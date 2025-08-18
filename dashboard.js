@@ -701,7 +701,7 @@ function addSelectedMonthBlock(monthKey) {
   const block = document.createElement('div');
   block.className = 'selected-month-block';
   block.innerHTML = `
-  <div>
+  <div class="selected-month-block-space">
     <div class="selected-month-block-header">
       <h3>${month.name} ${month.year} </h3> 
       <button class="selected-month-toggle" aria-label="Expandir">
@@ -1578,6 +1578,7 @@ document.getElementById('btnExportReport').addEventListener('click', () => {
 function initMonthRange(year, month){
   const start = document.getElementById('rangeStart');
   const end   = document.getElementById('rangeEnd');
+
   if(!(start && end)) return;
 
   const first = new Date(year, month - 1, 1);
@@ -1605,6 +1606,7 @@ function listenMonthRange(dataMonths, monthKey){
 
   const start = document.getElementById('rangeStart');
   const end   = document.getElementById('rangeEnd');
+
   if(!(start && end)) return;
 
   function onChange(){
