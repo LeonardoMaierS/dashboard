@@ -1604,7 +1604,7 @@ function initMonthRange(year, monthIndex, monthName) {
 }
 
 function listenMonthRange(month) {
-  const monthIndex = MONTHS.indexOf(month.name) + 1;
+  const monthIndex = MONTHS.indexOf(month.name.toLowerCase()) + 1;
 
   const itens = Object.keys(month.historicoDiario)
 
