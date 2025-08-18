@@ -1606,9 +1606,9 @@ function listenMonthRange(dataMonths, monthKey){
 
   const monthIndex = MONTHS.indexOf(month.name) + 1;
 
-  console.log("month")
+  console.log("month 1")
   console.log(month)
-  console.log("month")
+  console.log("month 2")
 
   initMonthRange(month.year, monthIndex);
 
@@ -1616,6 +1616,7 @@ function listenMonthRange(dataMonths, monthKey){
   const end   = document.getElementById('rangeEnd');
 
   console.log("FOI 1")
+  console.log(start, end)
 
   if(!(start && end)) return;
 
@@ -1625,8 +1626,8 @@ function listenMonthRange(dataMonths, monthKey){
     const startDate = start.value;
     const endDate   = end.value;
 
-    console.log(startDate,endDate)
-    
+    console.log(startDate, endDate)
+
     if(startDate && endDate && startDate <= endDate){
       console.log("Intervalo selecionado:", startDate, "até", endDate);
       // aqui você chama o update do dashboard
