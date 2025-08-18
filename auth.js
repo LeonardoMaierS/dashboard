@@ -162,6 +162,7 @@ window.addEventListener('DOMContentLoaded', function () {
     updateDashboard(dataMonths);
     initializeExportBlock(dataMonths);
     initializeModals();
+    attachRangeEvents();
   }
 
   async function handleEnter() {

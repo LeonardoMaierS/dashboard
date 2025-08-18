@@ -1747,6 +1747,32 @@ canvas {
   animation: spin .9s linear infinite
 }
 
+.range-filter {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  margin-left: auto
+}
+
+.range-filter input[type="date"] {
+  padding: .35rem .5rem;
+  border: 1px solid #e1e4ea;
+  border-radius: .5rem;
+  font: inherit
+}
+
+.range-filter button {
+  padding: .35rem .7rem;
+  border: 1px solid #d0d4db;
+  background: #f6f7f9;
+  border-radius: .5rem;
+  cursor: pointer
+}
+
+.range-filter button:hover {
+  background: #eef1f5
+}
+
 @media (max-width: 1300px) {
   .insights-container {
     display: grid;

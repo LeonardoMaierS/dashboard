@@ -1084,6 +1084,73 @@ function renderLineEvolucaoSTR(monthId, month) {
   });
 }
 
+// espera { searchesOK:[{date,value}], searchesNOK:[...], clicksSeries:[...], ctrSeries:[...] }
+function renderDailyCharts(series) {
+  const labels = series.searchesOK.map(p => p.date);
+
+  const datasets = [
+    {
+      label: 'Buscas com resultado',
+      data: series.searchesOK.map(p => p.value),
+      borderColor: 'rgba(34,197,94,1)',
+      backgroundColor: (ctx) => {
+        const { chart } = ctx; const { ctx: c, chartArea } = chart;
+        if (!chartArea) return 'rgba(34,197,94,0.2)';
+        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        g.addColorStop(0, 'rgba(34,197,94,0.35)');
+        g.addColorStop(1, 'rgba(34,197,94,0.05)');
+        return g;
+      },
+      tension: .35, pointRadius: 2
+    },
+    {
+      label: 'Buscas sem resultado',
+      data: series.searchesNOK.map(p => p.value),
+      borderColor: 'rgba(249,115,22,1)',
+      backgroundColor: (ctx) => {
+        const { chart } = ctx; const { ctx: c, chartArea } = chart;
+        if (!chartArea) return 'rgba(249,115,22,0.2)';
+        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        g.addColorStop(0, 'rgba(249,115,22,0.35)');
+        g.addColorStop(1, 'rgba(249,115,22,0.05)');
+        return g;
+      },
+      tension: .35, pointRadius: 2
+    },
+    {
+      label: 'STR (cliques)',
+      data: series.clicksSeries.map(p => p.value),
+      borderColor: 'rgba(59,130,246,1)',
+      backgroundColor: (ctx) => {
+        const { chart } = ctx; const { ctx: c, chartArea } = chart;
+        if (!chartArea) return 'rgba(59,130,246,0.2)';
+        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        g.addColorStop(0, 'rgba(59,130,246,0.35)');
+        g.addColorStop(1, 'rgba(59,130,246,0.05)');
+        return g;
+      },
+      tension: .35, pointRadius: 2, yAxisID: 'y2'
+    },
+    {
+      label: 'CTR (%)',
+      data: series.ctrSeries.map(p => p.value),
+      borderColor: 'rgba(37,99,235,1)',
+      backgroundColor: (ctx) => {
+        const { chart } = ctx; const { ctx: c, chartArea } = chart;
+        if (!chartArea) return 'rgba(37,99,235,0.2)';
+        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        g.addColorStop(0, 'rgba(37,99,235,0.35)');
+        g.addColorStop(1, 'rgba(37,99,235,0.05)');
+        return g;
+      },
+      tension: .35, pointRadius: 2, yAxisID: 'y3'
+    }
+  ];
+
+  updateOrCreateDailyChart(labels, datasets); // use sua função existente de criação/atualização
+}
+
+window.renderDailyCharts = renderDailyCharts;
 window.renderLineEvolucaoSTR = renderLineEvolucaoSTR;
 window.renderBarTop10TermosBuscados = renderBarTop10TermosBuscados;
 window.renderPieProporcaoTop10Buscas = renderPieProporcaoTop10Buscas;
