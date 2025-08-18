@@ -709,9 +709,9 @@ function addSelectedMonthBlock(monthKey) {
       </button>
     </div>
     <div class="month-range" id="monthRange">
-      <label for="rangeStart">Início</label>
+      <label for="rangeStart">De</label>
       <input type="date" id="rangeStart" name="rangeStart" />
-      <label for="rangeEnd">Fim</label>
+      <label for="rangeEnd">Até</label>
       <input type="date" id="rangeEnd" name="rangeEnd" />
     </div>
   </div>
@@ -1579,7 +1579,11 @@ function initMonthRange(year, month){
   const start = document.getElementById('rangeStart');
   const end   = document.getElementById('rangeEnd');
 
+  console.log("AQUI 1")
+
   if(!(start && end)) return;
+
+  console.log("AQUI 2")
 
   const first = new Date(year, month - 1, 1);
   const last  = new Date(year, month, 0);
@@ -1602,16 +1606,27 @@ function listenMonthRange(dataMonths, monthKey){
 
   const monthIndex = MONTHS.indexOf(month.name) + 1;
 
+  console.log("month")
+  console.log(month)
+  console.log("month")
+
   initMonthRange(month.year, monthIndex);
 
   const start = document.getElementById('rangeStart');
   const end   = document.getElementById('rangeEnd');
 
+  console.log("FOI 1")
+
   if(!(start && end)) return;
+
+  console.log("FOI 2")
 
   function onChange(){
     const startDate = start.value;
     const endDate   = end.value;
+
+    console.log(startDate,endDate)
+    
     if(startDate && endDate && startDate <= endDate){
       console.log("Intervalo selecionado:", startDate, "até", endDate);
       // aqui você chama o update do dashboard

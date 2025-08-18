@@ -1755,24 +1755,25 @@ canvas {
 
 .month-range {
   display: flex;
-  gap: 0.75rem;
   align-items: center;
   margin-top: 0.5rem;
 }
 
 .month-range label {
   font-size: 0.9rem;
+  margin-right: 3px;
+  margin-left: 10px;
   color: var(--text-secondary);
 }
 
 .month-range input[type="date"] {
   background: #192f36;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   border: 1px solid var(--brand);
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 0.9rem;
-  padding: 0.35rem 0.6rem;
+  padding: 0.3rem 0.5rem;
 }
 
 .month-range input[type="date"]:focus {
