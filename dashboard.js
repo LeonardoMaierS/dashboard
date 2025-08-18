@@ -694,8 +694,6 @@ function addSelectedMonthBlock(monthKey) {
 
   if (!month) return;
 
-  listenMonthRange(dataMonths, monthKey)
-
   const uniqueId = monthKey + '-' + device;
   const container = document.getElementById('selected-months-blocks');
   const block = document.createElement('div');
@@ -1060,6 +1058,8 @@ function addSelectedMonthBlock(monthKey) {
 
   </div>
   `;
+  
+  listenMonthRange(month)
 
   const toggleBtn = block.querySelector('.selected-month-toggle');
   // Alterna a expansão do bloco e renderiza os gráficos diários quando expandido
@@ -1604,9 +1604,7 @@ function initMonthRange(year, month) {
   end.value = lastISO;
 }
 
-function listenMonthRange(dataMonths, monthKey) {
-  const month = dataMonths[monthKey];
-
+function listenMonthRange(month) {
   const monthIndex = MONTHS.indexOf(month.name) + 1;
 
   const itens = Object.keys(month.historicoDiario)
