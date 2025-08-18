@@ -1594,7 +1594,7 @@ function initMonthRange(year, month){
   end.value = lastISO;
 }
 
-function listenMonthRange(dataMonths){
+function listenMonthRange(dataMonths, monthKey){
   const month = dataMonths[monthKey];
 
   console.log('month 1')
