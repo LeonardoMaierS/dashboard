@@ -1576,8 +1576,8 @@ document.getElementById('btnExportReport').addEventListener('click', () => {
 });
 
 function initMonthRange(year, monthIndex, monthName) {
-  const start = document.getElementById(`rangeStart-${month.name}`);
-  const end = document.getElementById(`rangeEnd-${month.name}`);
+  const start = document.getElementById(`rangeStart-${monthName}`);
+  const end = document.getElementById(`rangeEnd-${monthName}`);
 
   console.log("AQUI 1")
   console.log(year, monthIndex, monthName)
