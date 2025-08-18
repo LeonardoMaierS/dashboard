@@ -2,154 +2,7 @@ let tableItemLimit = 5
 let selectedMonths = []
 let monthsBlocksRendered = []
 
-// refs globais (após obter outras refs do DOM já existentes)
-const elRangeStart = document.getElementById('rangeStart');
-const elRangeEnd = document.getElementById('rangeEnd');
-const elRangeClear = document.getElementById('rangeClear');
-
-let currentMonthKey = null;
-let currentRange = { start: null, end: null };
-
-// util: limites do mês em ISO (YYYY-MM-DD)
-function getMonthBounds(monthKey) {
-  const { year, month } = monthsData[monthKey].meta; // ex.: {year:2025, month:3}
-  const start = new Date(year, month - 1, 1);
-  const end = new Date(year, month, 0);
-  const toISO = d => d.toISOString().slice(0, 10);
-  return { startISO: toISO(start), endISO: toISO(end) };
-}
-
-// util: aplica min/max nos inputs conforme mês
-function prepareRangeInputs(monthKey) {
-  const { startISO, endISO } = getMonthBounds(monthKey);
-  elRangeStart.min = startISO; elRangeStart.max = endISO;
-  elRangeEnd.min = startISO; elRangeEnd.max = endISO;
-  elRangeStart.value = startISO;
-  elRangeEnd.value = endISO;
-  currentRange = { start: startISO, end: endISO };
-}
-
-// filtra série [{date:'YYYY-MM-DD', value:Number}]
-function sliceSeriesByRange(series, startISO, endISO) {
-  return series.filter(p => p.date >= startISO && p.date <= endISO);
-}
-
-// agrega soma
-function sum(series) { return series.reduce((a, b) => a + (b.value || 0), 0); }
-
-// ponto central: monta “viewModel” filtrado a partir de monthsData[monthKey]
-function buildFilteredView(monthKey, startISO, endISO) {
-  const m = monthsData[monthKey];
-
-  const searchesOK = sliceSeriesByRange(m.daily.searches_with_result, startISO, endISO);
-  const searchesNOK = sliceSeriesByRange(m.daily.searches_without_result, startISO, endISO);
-  const clicksSeries = sliceSeriesByRange(m.daily.clicks, startISO, endISO);
-  const ctrSeries = sliceSeriesByRange(m.daily.ctr, startISO, endISO);
-
-  // KPIs derivados do recorte
-  const kpis = {
-    searches_with_result: sum(searchesOK),
-    searches_without_result: sum(searchesNOK),
-    clicks: sum(clicksSeries),
-    ctr_avg: ctrSeries.length ? (ctrSeries.reduce((a, b) => a + (b.value || 0), 0) / ctrSeries.length) : 0
-  };
-
-  // Se houver Top termos por dia em m.byDay.queries, re-agregue; caso não exista, mantenha original
-  let topQueriesOK = m.top.queries_with_result;
-  let topQueriesNOK = m.top.queries_without_result;
-
-  if (m.byDay?.queries_with_result && m.byDay?.queries_without_result) {
-    const inRange = (d) => d >= startISO && d <= endISO;
-    const agg = (byDayObj) => {
-      const map = new Map();
-      Object.entries(byDayObj).forEach(([date, arr]) => {
-        if (!inRange(date)) return;
-        arr.forEach(({ term, count }) => {
-          map.set(term, (map.get(term) || 0) + count);
-        });
-      });
-      return [...map.entries()]
-        .map(([term, count]) => ({ term, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 50);
-    };
-    topQueriesOK = agg(m.byDay.queries_with_result);
-    topQueriesNOK = agg(m.byDay.queries_without_result);
-  }
-
-  return {
-    kpis,
-    series: { searchesOK, searchesNOK, clicksSeries, ctrSeries },
-    tops: { topQueriesOK, topQueriesNOK }
-  };
-}
-
-function renderMonthWithRange(monthKey) {
-  const view = buildFilteredView(monthKey, currentRange.start, currentRange.end);
-  function attachRangeEvents() {
-    renderKpis(view.kpis);
-    renderDailyCharts(view.series);
-    renderTopTables(view.tops.topQueriesOK, view.tops.topQueriesNOK);
-  }
-}
-
-// listeners dos inputs
-function attachRangeEvents() {
-  const onChange = () => {
-    if (!currentMonthKey) return;
-    const s = elRangeStart.value, e = elRangeEnd.value;
-    if (s && e && s <= e) {
-      currentRange = { start: s, end: e };
-      renderMonthWithRange(currentMonthKey);
-    }
-  };
-  elRangeStart.addEventListener('change', onChange);
-  elRangeEnd.addEventListener('change', onChange);
-  elRangeClear.addEventListener('click', () => {
-    const { startISO, endISO } = getMonthBounds(currentMonthKey);
-    elRangeStart.value = startISO; elRangeEnd.value = endISO;
-    currentRange = { start: startISO, end: endISO };
-    renderMonthWithRange(currentMonthKey);
-  });
-}
-
-// 3) função onMonthChange
-function onMonthChange(monthKey) {
-  currentMonthKey = monthKey;
-  prepareRangeInputs(monthKey);
-  renderMonthWithRange(monthKey);
-}
-
-// 4) listener do select do mês
-document.getElementById('monthSelect').addEventListener('change', (e) => {
-  onMonthChange(e.target.value);
-});
-
-// 5) eventos dos inputs de data
-(function attachRangeEvents() {
-  const onChange = () => {
-    if (!currentMonthKey) return;
-    const s = elRangeStart.value, e = elRangeEnd.value;
-    if (s && e && s <= e) {
-      currentRange = { start: s, end: e };
-      renderMonthWithRange(currentMonthKey);
-    }
-  };
-  elRangeStart.addEventListener('change', onChange);
-  elRangeEnd.addEventListener('change', onChange);
-  elRangeClear.addEventListener('click', () => {
-    const { startISO, endISO } = getMonthBounds(currentMonthKey);
-    elRangeStart.value = startISO; elRangeEnd.value = endISO;
-    currentRange = { start: startISO, end: endISO };
-    renderMonthWithRange(currentMonthKey);
-  });
-})();
-
-// inicialização do dashboard
-const defaultMonth = document.getElementById('monthSelect').value;
-onMonthChange(defaultMonth);
-
-function getMonthData(platform) {
+function getMonthData(platform, dateStart, dateEnd) {
   let data = {};
   const monthObj = window.monthsData ?? {};
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
@@ -278,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   initializeMonthSelector(dataMonths);
   initializeModals();
-  attachRangeEvents();
   updateDashboard(dataMonths);
 });
 
@@ -330,7 +182,6 @@ function toggleMonth(monthKey, dataMonths) {
   }
 
   initializeModals();
-  attachRangeEvents();
   updateDashboard(dataMonths);
   initializeMonthSelector(dataMonths)
 }
@@ -356,7 +207,6 @@ function updateDashboard(dataMonths) {
     monthsBlocksRendered = [];
     selectedMonths.forEach(monthKey => { addSelectedMonthBlock(monthKey); });
     initializeModals()
-    attachRangeEvents();
   }
 
   if (selectedMonths.length === 0) {
@@ -599,7 +449,6 @@ function updateMainCharts(dataMonths) {
   }
 
   initializeModals();
-  attachRangeEvents();
 }
 
 function updateDetailedTable(dataMonths) {
@@ -854,12 +703,11 @@ function addSelectedMonthBlock(monthKey) {
         <svg viewBox="0 0 20 20"><polyline points="6 8 10 12 14 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
-    <div class="range-filter">
-      <label>Período:</label>
-      <input id="rangeStart" type="date">
-      <span>–</span>
-      <input id="rangeEnd" type="date">
-      <button id="rangeClear" type="button" aria-label="Limpar intervalo">Limpar</button>
+    <div class="month-range" id="monthRange">
+      <label for="rangeStart">Início</label>
+      <input type="date" id="rangeStart" name="rangeStart" />
+      <label for="rangeEnd">Fim</label>
+      <input type="date" id="rangeEnd" name="rangeEnd" />
     </div>
   </div>
 
@@ -1610,7 +1458,6 @@ document.querySelectorAll('.custom-select').forEach((select) => {
       initializeMonthSelector(dataMonths)
       updateDashboard(dataMonths)
       initializeModals()
-      attachRangeEvents();
     });
   });
 
