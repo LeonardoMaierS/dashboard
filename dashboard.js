@@ -1059,8 +1059,6 @@ function addSelectedMonthBlock(monthKey) {
   </div>
   `;
   
-  listenMonthRange(month)
-
   const toggleBtn = block.querySelector('.selected-month-toggle');
   // Alterna a expansão do bloco e renderiza os gráficos diários quando expandido
 
@@ -1128,6 +1126,8 @@ function addSelectedMonthBlock(monthKey) {
   const advancedToggleBtn = block.querySelector('.advanced-toggle');
   const advancedChartsContent = block.querySelector('.advanced-charts-content');
   let advancedChartsRendered = false;
+  
+  listenMonthRange(month)
 
   // Alterna a área de indicadores avançados. Ao abrir pela primeira vez,
   // os gráficos são renderizados utilizando os dados do mês.
