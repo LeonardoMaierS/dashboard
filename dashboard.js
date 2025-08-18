@@ -690,7 +690,7 @@ function addSelectedMonthBlock(monthKey) {
   if (monthsBlocksRendered.includes(monthKey)) return;
   monthsBlocksRendered.push(monthKey);
 
-  const month = dataMonths[monthKey];
+  let month = dataMonths[monthKey];
 
   if (!month) return;
 
@@ -1058,7 +1058,38 @@ function addSelectedMonthBlock(monthKey) {
 
   </div>
   `;
-  
+
+  // TODO - quando alterar a data deve filtrar aqui de acordo com a data definida
+  function _monthDataRestructuring(month) {
+    const start = document.getElementById(`rangeStart-${month.name}`).value;
+    const end = document.getElementById(`rangeEnd-${month.name}`).value;
+
+    console.log("test 1")
+    console.log(start, end)
+    console.log("test 2")
+    const itens = Object.keys(month.historicoDiario)
+
+    console.log("month 1")
+    console.log(month)
+    console.log("month 2")
+    console.log(itens)
+    console.log("month 22")
+    console.log(itens[0])
+    console.log("month 3")
+    console.log(itens[itens.length - 1])
+    console.log("month 4")
+
+    if (start || end) {
+      let monthRestructured = month
+
+      return monthRestructured
+    } else {
+      return month
+    }
+  }
+
+  month = _monthDataRestructuring(month)
+
   const toggleBtn = block.querySelector('.selected-month-toggle');
   // Alterna a expansão do bloco e renderiza os gráficos diários quando expandido
 
@@ -1126,7 +1157,7 @@ function addSelectedMonthBlock(monthKey) {
   const advancedToggleBtn = block.querySelector('.advanced-toggle');
   const advancedChartsContent = block.querySelector('.advanced-charts-content');
   let advancedChartsRendered = false;
-  
+
   listenMonthRange(month)
 
   // Alterna a área de indicadores avançados. Ao abrir pela primeira vez,
@@ -1579,13 +1610,7 @@ function initMonthRange(year, monthIndex, monthName) {
   const start = document.getElementById(`rangeStart-${monthName}`);
   const end = document.getElementById(`rangeEnd-${monthName}`);
 
-  console.log("AQUI 1")
-  console.log(year, monthIndex, monthName)
-  console.log(start, end)
-
   if (!(start && end)) return;
-
-  console.log("AQUI 2")
 
   const first = new Date(year, monthIndex - 1, 1);
   const last = new Date(year, monthIndex, 0);
@@ -1606,38 +1631,16 @@ function initMonthRange(year, monthIndex, monthName) {
 function listenMonthRange(month) {
   const monthIndex = MONTHS.indexOf(month.name.toLowerCase()) + 1;
 
-  const itens = Object.keys(month.historicoDiario)
-
-  console.log("month 1")
-  console.log(month)
-  console.log("month 2")
-  console.log(itens)
-  console.log("month 22")
-  console.log(itens[0])
-  console.log("month 3")
-  console.log(itens[itens.length - 1])
-  console.log("month 4")
-
-  // document.getElementById("rangeStart").value = itens[0];
-  // document.getElementById("rangeEnd").value = itens[itens - 1];
-
   initMonthRange(month.year, monthIndex, month.name);
 
   const start = document.getElementById(`rangeStart-${month.name}`);
   const end = document.getElementById(`rangeEnd-${month.name}`);
 
-  console.log("FOI 1")
-  console.log(start, end)
-
   if (!(start && end)) return;
-
-  console.log("FOI 2")
 
   function onChange() {
     const startDate = start.value;
     const endDate = end.value;
-
-    console.log(startDate, endDate)
 
     if (startDate && endDate && startDate <= endDate) {
       console.log("Intervalo selecionado:", startDate, "até", endDate);
