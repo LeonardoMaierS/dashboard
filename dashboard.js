@@ -687,14 +687,14 @@ function addSelectedMonthBlock(monthKey) {
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
 
-  listenMonthRange(dataMonths, monthKey)
-
   if (monthsBlocksRendered.includes(monthKey)) return;
   monthsBlocksRendered.push(monthKey);
 
   const month = dataMonths[monthKey];
 
   if (!month) return;
+
+  listenMonthRange(dataMonths, monthKey)
 
   const uniqueId = monthKey + '-' + device;
   const container = document.getElementById('selected-months-blocks');
