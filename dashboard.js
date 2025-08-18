@@ -1575,22 +1575,25 @@ document.getElementById('btnExportReport').addEventListener('click', () => {
   XLSX.writeFile(wb, `relatorio-buscas-${platformName}-${iniName}_a_${fimName}.xlsx`);
 });
 
-function initMonthRange(year, month){
+function initMonthRange(year, month) {
   const start = document.getElementById('rangeStart');
-  const end   = document.getElementById('rangeEnd');
+  const end = document.getElementById('rangeEnd');
 
   console.log("AQUI 1")
+  console.log(start, end)
 
-  if(!(start && end)) return;
+  if (!(start && end)) {
+
+  };
 
   console.log("AQUI 2")
 
   const first = new Date(year, month - 1, 1);
-  const last  = new Date(year, month, 0);
-  const toISO = d => d.toISOString().slice(0,10);
+  const last = new Date(year, month, 0);
+  const toISO = d => d.toISOString().slice(0, 10);
 
   const firstISO = toISO(first);
-  const lastISO  = toISO(last);
+  const lastISO = toISO(last);
 
   start.min = firstISO;
   start.max = lastISO;
@@ -1601,8 +1604,12 @@ function initMonthRange(year, month){
   end.value = lastISO;
 }
 
-function listenMonthRange(dataMonths, monthKey){
+function listenMonthRange(dataMonths, monthKey) {
   const month = dataMonths[monthKey];
+
+  document.getElementById("rangeStart").value = Object.keys(month.historicoDiario)[0];
+
+  document.getElementById("rangeEnd").value = Object.keys(month.historicoDiario)[month.historicoDiario.length - 1];
 
   const monthIndex = MONTHS.indexOf(month.name) + 1;
 
@@ -1613,22 +1620,22 @@ function listenMonthRange(dataMonths, monthKey){
   initMonthRange(month.year, monthIndex);
 
   const start = document.getElementById('rangeStart');
-  const end   = document.getElementById('rangeEnd');
+  const end = document.getElementById('rangeEnd');
 
   console.log("FOI 1")
   console.log(start, end)
 
-  if(!(start && end)) return;
+  if (!(start && end)) return;
 
   console.log("FOI 2")
 
-  function onChange(){
+  function onChange() {
     const startDate = start.value;
-    const endDate   = end.value;
+    const endDate = end.value;
 
     console.log(startDate, endDate)
 
-    if(startDate && endDate && startDate <= endDate){
+    if (startDate && endDate && startDate <= endDate) {
       console.log("Intervalo selecionado:", startDate, "até", endDate);
       // aqui você chama o update do dashboard
       // updateDashboardByRange(startDate, endDate);
