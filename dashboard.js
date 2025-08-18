@@ -1607,15 +1607,22 @@ function initMonthRange(year, month) {
 function listenMonthRange(dataMonths, monthKey) {
   const month = dataMonths[monthKey];
 
-  document.getElementById("rangeStart").value = Object.keys(month.historicoDiario)[0];
-
-  document.getElementById("rangeEnd").value = Object.keys(month.historicoDiario)[month.historicoDiario.length - 1];
-
   const monthIndex = MONTHS.indexOf(month.name) + 1;
 
   console.log("month 1")
   console.log(month)
-  console.log("month 2")
+    console.log("month 2")
+  console.log(Object.keys(month.historicoDiario))
+  console.log("month 22")
+  console.log(Object.keys(month.historicoDiario)[0])
+  console.log("month 3")
+  console.log(Object.keys(month.historicoDiario)[month.historicoDiario.length - 1])
+    console.log("month 4")
+
+    document.getElementById("rangeStart").value = Object.keys(month.historicoDiario)[0];
+
+  document.getElementById("rangeEnd").value = Object.keys(month.historicoDiario)[month.historicoDiario.length - 1];
+
 
   initMonthRange(month.year, monthIndex);
 
