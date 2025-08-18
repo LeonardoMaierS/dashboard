@@ -1,3 +1,5 @@
+const MONTHS = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+
 let tableItemLimit = 5
 let selectedMonths = []
 let monthsBlocksRendered = []
@@ -1597,7 +1599,7 @@ function initMonthRange(year, month){
 function listenMonthRange(dataMonths, monthKey){
   const month = dataMonths[monthKey];
 
-  const monthIndex = MONTH_SLUGS.indexOf(month.name) + 1;
+  const monthIndex = MONTHS.indexOf(month.name) + 1;
 
   initMonthRange(month.year, monthIndex);
 

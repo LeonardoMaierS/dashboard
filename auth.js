@@ -1,6 +1,5 @@
 window.addEventListener('DOMContentLoaded', function () {
   const API_BASE = window.ENV.REMOTE_BASE_URL;
-  const MONTH_SLUGS = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
   let BEARER = null;
 
   const now = new Date();
@@ -109,7 +108,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
   // ===== Carregamento paralelo =====
   async function loadYearAllAtOnce() {
-    const months = MONTH_SLUGS.slice(0, mNow + 1);
+    const months = MONTHS.slice(0, mNow + 1);
     let contHeaderLoader = months.length
 
     window.definedYear = year;
@@ -179,7 +178,7 @@ window.addEventListener('DOMContentLoaded', function () {
       await auth(pwd);
 
       if (BEARER) {
-        MONTH_SLUGS.forEach(month => {
+        MONTHS.forEach(month => {
           if (window.monthsData?.[`${month}${year}`]?.mobile?.available ||
             window.monthsData?.[`${month}${year}`]?.mobile?.available) return
 
