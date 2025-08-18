@@ -1064,6 +1064,9 @@ function addSelectedMonthBlock(monthKey) {
     const start = document.getElementById(`rangeStart-${month.name}`)?.value;
     const end = document.getElementById(`rangeEnd-${month.name}`)?.value;
 
+
+    // TODO - validar todo o fluxo
+
     console.log("test 1")
     console.log(start, end)
     console.log("test 2")
@@ -1080,7 +1083,43 @@ function addSelectedMonthBlock(monthKey) {
     console.log("month 4")
 
     if (start || end) {
-      let monthRestructured = month
+      let monthRestructured = {
+        name: month.name,
+        year: month.year,
+        available: true,
+        buscasComResultado: 0,
+        buscasSemResultado: 0,
+        pedidos: 0,
+        totalBuscas: 0,
+        vendas: 0,
+        historicoDiario: {}
+      }
+
+      let ctrSoma = 0
+      let ticketMedio = 0
+      let conversaoSoma = 0
+
+      Object.keys(month.historicoDiario).forEach(data => {
+        if (data < start || data > end) {
+          monthRestructured.historicoDiario = { ...monthRestructured.historicoDiario, ...data }
+          monthRestructured.totalBuscas += data.buscas;
+          monthRestructured.buscasComResultado += data.buscasComResultado
+          monthRestructured.buscasSemResultado += data.buscasSemResultado
+          monthRestructured.pedidos += data.pedidos
+          monthRestructured.vendas += data.vendas
+          monthRestructured.totalBuscas += data.totalBuscas
+        }
+
+        ctrSoma += data.ctr
+        ticketMedio += data.ticketMedio
+        conversaoSoma += data.conversao
+      })
+
+      const diasCount = Object.keys(monthRestructured.historicoDiario).length
+
+      monthRestructured.conversao = diasCount ? +(monthRestructured.conversaoSoma / diasCount).toFixed(2) : 0;
+      monthRestructured.ctr = diasCount ? +(monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
+      monthRestructured.ticketMedio = diasCount ? +(monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
 
       return monthRestructured
     } else {
@@ -1158,7 +1197,7 @@ function addSelectedMonthBlock(monthKey) {
   const advancedChartsContent = block.querySelector('.advanced-charts-content');
   let advancedChartsRendered = false;
 
-  listenMonthRange(month)
+  listenMonthRange(month, monthKey)
 
 
 
@@ -1630,7 +1669,7 @@ function initMonthRange(year, monthIndex, monthName) {
   end.value = lastISO;
 }
 
-function listenMonthRange(month) {
+function listenMonthRange(month, monthKey) {
   const monthIndex = MONTHS.indexOf(month.name.toLowerCase()) + 1;
 
   initMonthRange(month.year, monthIndex, month.name);
@@ -1646,8 +1685,7 @@ function listenMonthRange(month) {
 
     if (startDate && endDate && startDate <= endDate) {
       console.log("Intervalo selecionado:", startDate, "até", endDate);
-      // aqui você chama o update do dashboard
-      // updateDashboardByRange(startDate, endDate);
+      addSelectedMonthBlock(monthKey)
     }
   }
 
