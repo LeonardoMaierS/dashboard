@@ -1061,8 +1061,8 @@ function addSelectedMonthBlock(monthKey) {
 
   // TODO - quando alterar a data deve filtrar aqui de acordo com a data definida
   function _monthDataRestructuring(month) {
-    const start = document.getElementById(`rangeStart-${month.name}`).value;
-    const end = document.getElementById(`rangeEnd-${month.name}`).value;
+    const start = document.getElementById(`rangeStart-${month.name}`)?.value;
+    const end = document.getElementById(`rangeEnd-${month.name}`)?.value;
 
     console.log("test 1")
     console.log(start, end)
@@ -1159,6 +1159,8 @@ function addSelectedMonthBlock(monthKey) {
   let advancedChartsRendered = false;
 
   listenMonthRange(month)
+
+
 
   // Alterna a área de indicadores avançados. Ao abrir pela primeira vez,
   // os gráficos são renderizados utilizando os dados do mês.
