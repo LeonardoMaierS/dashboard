@@ -84,12 +84,13 @@ function buildFilteredView(monthKey, startISO, endISO) {
   };
 }
 
-function renderMonthWithRange(monthKey){
+function renderMonthWithRange(monthKey) {
   const view = buildFilteredView(monthKey, currentRange.start, currentRange.end);
-  function attachRangeEvents(){
-  renderKpis(view.kpis);
-  renderDailyCharts(view.series);
-  renderTopTables(view.tops.topQueriesOK, view.tops.topQueriesNOK);
+  function attachRangeEvents() {
+    renderKpis(view.kpis);
+    renderDailyCharts(view.series);
+    renderTopTables(view.tops.topQueriesOK, view.tops.topQueriesNOK);
+  }
 }
 
 // listeners dos inputs
@@ -113,30 +114,30 @@ function attachRangeEvents() {
 }
 
 // 3) função onMonthChange
-function onMonthChange(monthKey){
+function onMonthChange(monthKey) {
   currentMonthKey = monthKey;
   prepareRangeInputs(monthKey);
   renderMonthWithRange(monthKey);
 }
 
 // 4) listener do select do mês
-document.getElementById('monthSelect').addEventListener('change', (e)=>{
+document.getElementById('monthSelect').addEventListener('change', (e) => {
   onMonthChange(e.target.value);
 });
 
 // 5) eventos dos inputs de data
-(function attachRangeEvents(){
-  const onChange = ()=>{
-    if(!currentMonthKey) return;
+(function attachRangeEvents() {
+  const onChange = () => {
+    if (!currentMonthKey) return;
     const s = elRangeStart.value, e = elRangeEnd.value;
-    if(s && e && s <= e){
+    if (s && e && s <= e) {
       currentRange = { start: s, end: e };
       renderMonthWithRange(currentMonthKey);
     }
   };
   elRangeStart.addEventListener('change', onChange);
   elRangeEnd.addEventListener('change', onChange);
-  elRangeClear.addEventListener('click', ()=>{
+  elRangeClear.addEventListener('click', () => {
     const { startISO, endISO } = getMonthBounds(currentMonthKey);
     elRangeStart.value = startISO; elRangeEnd.value = endISO;
     currentRange = { start: startISO, end: endISO };
