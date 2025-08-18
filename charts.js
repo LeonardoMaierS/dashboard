@@ -1084,7 +1084,6 @@ function renderLineEvolucaoSTR(monthId, month) {
   });
 }
 
-// espera { searchesOK:[{date,value}], searchesNOK:[...], clicksSeries:[...], ctrSeries:[...] }
 function renderDailyCharts(series) {
   const labels = series.searchesOK.map(p => p.date);
 

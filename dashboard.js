@@ -685,12 +685,15 @@ function addSelectedMonthBlock(monthKey) {
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
 
+  listenMonthRange(dataMonths, monthKey)
+
   if (monthsBlocksRendered.includes(monthKey)) return;
   monthsBlocksRendered.push(monthKey);
 
   const month = dataMonths[monthKey];
 
   if (!month) return;
+
   const uniqueId = monthKey + '-' + device;
   const container = document.getElementById('selected-months-blocks');
   const block = document.createElement('div');
@@ -1569,6 +1572,56 @@ document.getElementById('btnExportReport').addEventListener('click', () => {
   XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
   XLSX.writeFile(wb, `relatorio-buscas-${platformName}-${iniName}_a_${fimName}.xlsx`);
 });
+
+function initMonthRange(year, month){
+  const start = document.getElementById('rangeStart');
+  const end   = document.getElementById('rangeEnd');
+  if(!(start && end)) return;
+
+  const first = new Date(year, month - 1, 1);
+  const last  = new Date(year, month, 0);
+  const toISO = d => d.toISOString().slice(0,10);
+
+  const firstISO = toISO(first);
+  const lastISO  = toISO(last);
+
+  start.min = firstISO;
+  start.max = lastISO;
+  start.value = firstISO;
+
+  end.min = firstISO;
+  end.max = lastISO;
+  end.value = lastISO;
+}
+
+function listenMonthRange(dataMonths){
+  const month = dataMonths[monthKey];
+
+  console.log('month 1')
+  console.log(month)
+  console.log('month 2')
+  // initMonthRange(year, month);
+
+  const start = document.getElementById('rangeStart');
+  const end   = document.getElementById('rangeEnd');
+  if(!(start && end)) return;
+
+  function onChange(){
+    const startDate = start.value;
+    const endDate   = end.value;
+    if(startDate && endDate && startDate <= endDate){
+      console.log("Intervalo selecionado:", startDate, "até", endDate);
+      // aqui você chama o update do dashboard
+      // updateDashboardByRange(startDate, endDate);
+    }
+  }
+
+  start.addEventListener("change", onChange);
+  end.addEventListener("change", onChange);
+}
+
+
+
 
 document.getElementById('openExportModal').addEventListener('click', () => {
   document.getElementById('exportModal').style.display = 'block';
