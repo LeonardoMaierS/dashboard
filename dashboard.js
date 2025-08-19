@@ -1067,40 +1067,25 @@ function updateSelectedMonthBlock(monthKey, view) {
   block.querySelector('[data-role="tables"]').innerHTML = view.tablesHTML || '';
 }
 
+// substitua toda a implementação de addSelectedMonthBlock por esta:
 function addSelectedMonthBlock(monthKey) {
-  console.log('addSelectedMonthBlock 11')
-  console.log(monthKey)
-  console.log('addSelectedMonthBlock 12')
+  // obtem os dados atuais (desktop / mobile ou combinado)
   const dataMonths = getMonthData();
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
-  const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
+  const device = platformSelectDiv?.querySelector('.custom-select-value')
+    ?.textContent?.trim()?.toLowerCase();
   const uniqueId = `${monthKey}-${device}`;
+
   let month = dataMonths[monthKey];
   let block;
 
-  // TODO - quando alterar a data deve filtrar aqui de acordo com a data definida
+  // lê o intervalo selecionado para esse mês (se existir)
   const start = document.getElementById(`rangeStart-${month.name}`)?.value;
   const end = document.getElementById(`rangeEnd-${month.name}`)?.value;
 
-  console.log("test 1")
-  console.log(start, end)
-  console.log("test 2")
-
-  /*
-  const itens = Object.keys(month.historicoDiario)
-  console.log("month 1")
-  console.log(month)
-  console.log("month 2")
-  console.log(itens)
-  console.log("month 22")
-  console.log(itens[0])
-  console.log("month 3")
-  console.log(itens[itens.length - 1])
-  console.log("month 4")
-  */
-
+  // se houver data inicial ou final, cria uma cópia filtrada do mês
   if (start || end) {
-    let monthRestructured = {
+    const monthRestructured = {
       name: month.name,
       year: month.year,
       available: true,
@@ -1109,88 +1094,68 @@ function addSelectedMonthBlock(monthKey) {
       pedidos: 0,
       totalBuscas: 0,
       vendas: 0,
-      historicoDiario: {}
-    }
+      historicoDiario: {},
+      conversao: 0,
+      ctr: 0,
+      ticketMedio: 0
+    };
 
-    let ctrSoma = 0
-    let ticketMedio = 0
-    let conversaoSoma = 0
+    // acumuladores para média de CTR, conversão e ticket médio
+    let ctrSum = 0;
+    let conversaoSum = 0;
+    let ticketSum = 0;
 
-    Object.keys(month.historicoDiario).forEach(data => {
-      console.log("data 1")
-      console.log(data, start, end, data >= start, data <= end)
-      console.log("data 3")
-      console.log(month.historicoDiario[data])
-      console.log("data 4")
+    // percorre todos os dias do mês original e mantém apenas os que estão no intervalo [start, end]
+    Object.keys(month.historicoDiario).forEach(dataDia => {
+      if (dataDia >= start && dataDia <= end) {
+        const dia = month.historicoDiario[dataDia];
+        const resumo = dia.resumoDiario || {};
 
-      if (data >= start && data <= end) {
-        monthRestructured.historicoDiario[data] = month.historicoDiario[data]
-        monthRestructured.buscasComResultado += month.historicoDiario[data].resumoDiario.buscasComResultado
-        monthRestructured.buscasSemResultado += month.historicoDiario[data].resumoDiario.buscasSemResultado
-        monthRestructured.pedidos += month.historicoDiario[data].resumoDiario.pedidos
-        monthRestructured.vendas += month.historicoDiario[data].resumoDiario.vendas
-        monthRestructured.totalBuscas += month.historicoDiario[data].resumoDiario.buscasComResultado + month.historicoDiario[data].resumoDiario.buscasSemResultado
+        monthRestructured.historicoDiario[dataDia] = dia;
+        monthRestructured.buscasComResultado += Number(resumo.buscasComResultado || 0);
+        monthRestructured.buscasSemResultado += Number(resumo.buscasSemResultado || 0);
+        monthRestructured.pedidos += Number(resumo.pedidos || 0);
+        monthRestructured.vendas += Number(resumo.vendas || 0);
+        monthRestructured.totalBuscas +=
+          Number(resumo.buscasComResultado || 0) +
+          Number(resumo.buscasSemResultado || 0);
 
-        ctrSoma += month.historicoDiario[data].ctr
-        ticketMedio += month.historicoDiario[data].ticketMedio
-        conversaoSoma += month.historicoDiario[data].conversao
+        ctrSum += Number(resumo.ctr || 0);
+        conversaoSum += Number(resumo.conversao || 0);
+        ticketSum += Number(resumo.ticketMedio || 0);
       }
-    })
+    });
 
-    const diasCount = Object.keys(monthRestructured.historicoDiario).length
+    const diasCount = Object.keys(monthRestructured.historicoDiario).length;
+    monthRestructured.conversao = diasCount ? +(conversaoSum / diasCount).toFixed(2) : 0;
+    monthRestructured.ctr = diasCount ? +(ctrSum / diasCount).toFixed(1) : 0;
+    monthRestructured.ticketMedio = diasCount ? +(ticketSum / diasCount).toFixed(2) : 0;
 
-    monthRestructured.conversao = diasCount ? +(monthRestructured.conversaoSoma / diasCount).toFixed(2) : 0;
-    monthRestructured.ctr = diasCount ? +(monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
-    monthRestructured.ticketMedio = diasCount ? +(monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
-
-    month = monthRestructured
+    month = monthRestructured;
   }
 
-  console.log("MONTHHHHHHHHHHHHHHHHHHHHHHHHH 1")
-  console.log(month)
-  console.log("MONTHHHHHHHHHHHHHHHHHHHHHHHHH 2")
-
-  // Caso ja renderizado deve alterar somente os valores
+  // se o bloco do mês já existe, recupera-o para atualizar; caso contrário, cria um novo
   if (monthsBlocksRendered.includes(monthKey)) {
-    console.log("JA INCLUSO, DEVE ATUALIZAR O BLOCK!")
-
-    block = monthBlocks.get(monthKey) || document.querySelector(`.month-block[data-month-key="${monthKey}"]`);
-
-    console.log("BLOCK 111")
-    console.log(block)
-    console.log("BLOCK 112")
+    block = monthBlocks.get(monthKey) ||
+      document.querySelector(`.month-block[data-month-key="${monthKey}"]`);
   } else {
-    console.log("NOVO, INCLUINDO NOVO BLOCK!")
-
-    block = addSelectedMonth(monthKey, month.name, month.year, uniqueId)
-
-    console.log("BLOCK 222")
-    console.log(block)
-    console.log("BLOCK 223")
-
+    block = addSelectedMonth(monthKey, month.name, month.year, uniqueId);
     monthsBlocksRendered.push(monthKey);
   }
 
-  console.log('addSelectedMonthBlock 2')
-
-  // TODO - se nao fizer falta -> if (!month) return;
-
-  const container = document.getElementById('selected-months-blocks');
-
+  // renderiza os gráficos e tabelas quando o bloco for expandido
   const toggleBtn = block.querySelector('.selected-month-toggle');
-  // Alterna a expansão do bloco e renderiza os gráficos diários quando expandido
-
   toggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const expanded = block.classList.toggle('expanded');
     if (expanded) {
-      // Renderiza os gráficos e tabelas apenas ao expandir o bloco
       renderPieProporcaoBuscas(uniqueId, month);
       renderLineEvolucaoBuscasComResultado(uniqueId, month);
       renderLineEvolucaoBuscasSemResultado(uniqueId, month);
       renderLineEvolucaoSTR(uniqueId, month);
       renderLineEvolucaoCTR(uniqueId, month);
 
+      // atualiza a tabela de proporção de buscas
       const total = Object.values(month.historicoDiario || {}).reduce(
         (acc, d) => {
           acc.com += Number(d.resumoDiario?.buscasComResultado || 0);
@@ -1199,8 +1164,12 @@ function addSelectedMonthBlock(monthKey) {
         }, { com: 0, sem: 0 }
       );
       const geralRows = [
-        ['Com Resultado', total.com.toLocaleString(), (total.com + total.sem) ? ((total.com / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%'],
-        ['Sem Resultado', total.sem.toLocaleString(), (total.com + total.sem) ? ((total.sem / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%']
+        ['Com Resultado', total.com.toLocaleString(),
+          (total.com + total.sem) ?
+            ((total.com / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%'],
+        ['Sem Resultado', total.sem.toLocaleString(),
+          (total.com + total.sem) ?
+            ((total.sem / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%']
       ];
       const tableEl = document.getElementById(`table-pieProporcaoBuscas-${uniqueId}`);
       if (tableEl) {
@@ -1209,7 +1178,7 @@ function addSelectedMonthBlock(monthKey) {
     }
   });
 
-  // Também permite expandir/recolher clicando na header do bloco (exceto botão)
+  // permite expandir/recolher clicando na header do bloco, exceto no botão
   block.querySelector('.selected-month-block-header').addEventListener('click', (e) => {
     if (e.target !== toggleBtn) {
       const expanded = block.classList.toggle('expanded');
@@ -1228,8 +1197,12 @@ function addSelectedMonthBlock(monthKey) {
           }, { com: 0, sem: 0 }
         );
         const geralRows = [
-          ['Com Resultado', total.com.toLocaleString(), (total.com + total.sem) ? ((total.com / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%'],
-          ['Sem Resultado', total.sem.toLocaleString(), (total.com + total.sem) ? ((total.sem / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%']
+          ['Com Resultado', total.com.toLocaleString(),
+            (total.com + total.sem) ?
+              ((total.com / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%'],
+          ['Sem Resultado', total.sem.toLocaleString(),
+            (total.com + total.sem) ?
+              ((total.sem / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%']
         ];
         const tableEl = document.getElementById(`table-pieProporcaoBuscas-${uniqueId}`);
         if (tableEl) {
@@ -1239,125 +1212,15 @@ function addSelectedMonthBlock(monthKey) {
     }
   });
 
-  container.appendChild(block);
-  monthBlocks.set(monthKey, block);
+  // adiciona (ou reaplica) o bloco ao contêiner e salva a referência
+  const container = document.getElementById('selected-months-blocks');
+  if (!monthsBlocks.get(monthKey)) {
+    container.appendChild(block);
+    monthBlocks.set(monthKey, block);
+  }
 
-  const advancedToggleBtn = block.querySelector('.advanced-toggle');
-  const advancedChartsContent = block.querySelector('.advanced-charts-content');
-  let advancedChartsRendered = false;
-
-  listenMonthRange(month, monthKey)
-
-  // Alterna a área de indicadores avançados. Ao abrir pela primeira vez,
-  // os gráficos são renderizados utilizando os dados do mês.
-  advancedToggleBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const visible = advancedChartsContent.style.display === 'block';
-    if (visible) {
-      advancedChartsContent.style.display = 'none';
-      advancedToggleBtn.classList.remove('expanded');
-    } else {
-      advancedChartsContent.style.display = 'block';
-      advancedToggleBtn.classList.add('expanded');
-      if (!advancedChartsRendered) {
-        renderBarTop10BuscasComResultado(uniqueId, month);
-        renderBarTop10BuscasSemResultado(uniqueId, month);
-        renderBarBuscasComResultadoSemVendas(uniqueId, month);
-        renderPieDistribuicaoTop10BuscasComResultado(uniqueId, month);
-        renderPieDistribuicaoTop10BuscasSemVendas(uniqueId, month);
-        renderPieDistribuicaoTop10BuscasSemResultado(uniqueId, month);
-
-        _filterTopTerms = (filter, pct, numItens = 10) => {
-          const terms = []
-          const agregados = {}
-
-          for (const day in month.historicoDiario) {
-            const dayTerm = month.historicoDiario[day][filter] || [];
-            terms.push(...dayTerm);
-          }
-
-          terms.forEach(({ termo, buscas }) => {
-            agregados[termo] = (agregados[termo] || 0) + buscas;
-          });
-
-          const rows = Object.entries(agregados)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, numItens)
-
-          if (pct) {
-            const sumCom = rows.reduce((acc, [, i]) => acc + i, 0);
-            return rows.map(([termo, buscas]) => [termo, buscas, sumCom ? ((buscas / sumCom) * 100).toFixed(1) + '%' : '0%'])
-          } else {
-            return rows
-          }
-        }
-
-        _filterTopTermsNoSales = (pct, numItens = 10) => {
-          const agregados = {};
-
-          for (const dia in month.historicoDiario) {
-            const termosDia = month.historicoDiario[dia].termosComResultado || [];
-
-            termosDia.forEach(({ termo, buscas, vendas }) => {
-              if (!agregados[termo])
-                agregados[termo] = { buscas: 0, teveVenda: false };
-
-              if (vendas > 0)
-                agregados[termo].teveVenda = true;
-
-
-              agregados[termo].buscas += buscas;
-            });
-          }
-
-          const rows = Object.entries(agregados)
-            .filter(([, data]) => !data.teveVenda)
-            .sort((a, b) => b[1].buscas - a[1].buscas)
-            .slice(0, numItens)
-            .map(([termo, data]) => ([termo, data.buscas]));
-
-          if (pct) {
-            const sumCom = rows.reduce((acc, [, i]) => acc + i, 0);
-            return rows.map(([termo, buscas]) => [termo, buscas, sumCom ? ((buscas / sumCom) * 100).toFixed(1) + '%' : '0%'])
-          } else {
-            return rows
-          }
-        }
-
-        // 5. Top 10 Buscas com Resultado
-        const tableCom = document.getElementById(`table-barTop10BuscasComResultado-${uniqueId}`);
-        if (tableCom)
-          tableCom.innerHTML = generateTableHTML(['Termo', 'Buscas'], _filterTopTerms('termosComResultado'));
-
-        // 6. Top 10 Buscas sem Resultado
-        const tableSem = document.getElementById(`table-barTop10BuscasSemResultado-${uniqueId}`);
-        if (tableSem)
-          tableSem.innerHTML = generateTableHTML(['Termo', 'Buscas'], _filterTopTerms('termosSemResultado'));
-
-        // 7. Buscas com Resultado, mas Sem Vendas
-        const tableSemVenda = document.getElementById(`table-barBuscasComResultadoSemVendas-${uniqueId}`);
-        if (tableSemVenda)
-          tableSemVenda.innerHTML = generateTableHTML(['Termo', 'Buscas'], _filterTopTermsNoSales());
-
-        // 8. Distribuição das Top 10 Buscas com Resultado
-        const tablePieCom = document.getElementById(`table-pieDistribuicaoTop10BuscasComResultado-${uniqueId}`);
-        if (tablePieCom)
-          tablePieCom.innerHTML = generateTableHTML(['Termo', 'Buscas', 'Proporção'], _filterTopTerms('termosComResultado', true));
-
-        // 9. Distribuição das Top 10 Buscas sem Vendas
-        const tablePieSemVenda = document.getElementById(`table-pieDistribuicaoTop10BuscasSemVendas-${uniqueId}`);
-        if (tablePieSemVenda)
-          tablePieSemVenda.innerHTML = generateTableHTML(['Termo', 'Buscas', 'Proporção'], _filterTopTermsNoSales(true));
-
-        // 10. Distribuição das Top 10 Buscas sem Resultado
-        const tablePieSemResultado = document.getElementById(`table-pieDistribuicaoTop10BuscasSemResultado-${uniqueId}`);
-        if (tablePieSemResultado)
-          tablePieSemResultado.innerHTML = generateTableHTML(['Termo', 'Buscas', 'Proporção'], _filterTopTerms('termosSemResultado', true));
-
-        advancedChartsRendered = true;
-      }
-    }
-  });
+  // registra listeners para os inputs de data e atualiza imediatamente o bloco
+  listenMonthRange(month, monthKey);
 }
 
 function renderMonthBlockCharts(monthKey, uniqueId) {
