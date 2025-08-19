@@ -712,6 +712,11 @@ function addSelectedMonthBlock(monthKey) {
   const uniqueId = monthKey + '-' + device;
   const container = document.getElementById('selected-months-blocks');
   const block = document.createElement('div');
+
+  console.log("BLOCK")
+  console.log(block)
+  console.log("BLOCK")
+
   block.className = 'selected-month-block';
   block.innerHTML = `
   <div class="selected-month-block-space">
