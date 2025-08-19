@@ -683,6 +683,7 @@ function initializeModals() {
 }
 
 function addSelectedMonthBlock(monthKey) {
+  console.log('addSelectedMonthBlock 1')
   const dataMonths = getMonthData();
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
@@ -690,9 +691,13 @@ function addSelectedMonthBlock(monthKey) {
   if (monthsBlocksRendered.includes(monthKey)) return;
   monthsBlocksRendered.push(monthKey);
 
+  console.log('addSelectedMonthBlock 2')
+
   let month = dataMonths[monthKey];
 
   if (!month) return;
+
+  console.log('addSelectedMonthBlock 3')
 
   const uniqueId = monthKey + '-' + device;
   const container = document.getElementById('selected-months-blocks');
