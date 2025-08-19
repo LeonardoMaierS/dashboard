@@ -1118,10 +1118,12 @@ function addSelectedMonthBlock(monthKey) {
 
     Object.keys(month.historicoDiario).forEach(data => {
       console.log("data 1")
-      console.log(data)
+      console.log(data, start, end, data >= start, data <= end)
       console.log("data 3")
-      console.log(start, end, data < start, data > end)
+      console.log(month.historicoDiario[data])
       console.log("data 4")
+      console.log(month.historicoDiario[data].buscas)
+      console.log("data 5")
 
       if (data >= start || data <= end) {
         monthRestructured.historicoDiario[data] = month.historicoDiario[data]
