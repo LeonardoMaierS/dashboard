@@ -1123,7 +1123,7 @@ function addSelectedMonthBlock(monthKey) {
       console.log(start, end, data < start, data > end)
       console.log("data 4")
 
-      if (data < start || data > end) {
+      if (data >= start || data <= end) {
         monthRestructured.historicoDiario[data] = month.historicoDiario[data]
         monthRestructured.totalBuscas += month.historicoDiario[data].buscas;
         monthRestructured.buscasComResultado += month.historicoDiario[data].buscasComResultado
@@ -1146,6 +1146,10 @@ function addSelectedMonthBlock(monthKey) {
 
     month = monthRestructured
   }
+
+  console.log("MONTHHHHHHHHHHHHHHHHHHHHHHHHH 1")
+  console.log(month)
+  console.log("MONTHHHHHHHHHHHHHHHHHHHHHHHHH 2")
 
   // Caso ja renderizado deve alterar somente os valores
   if (monthsBlocksRendered.includes(monthKey)) {
