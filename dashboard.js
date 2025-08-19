@@ -1214,7 +1214,7 @@ function addSelectedMonthBlock(monthKey) {
 
   // adiciona (ou reaplica) o bloco ao contêiner e salva a referência
   const container = document.getElementById('selected-months-blocks');
-  if (!monthsBlocks.get(monthKey)) {
+  if (!monthBlocks.get(monthKey)) {
     container.appendChild(block);
     monthBlocks.set(monthKey, block);
   }
