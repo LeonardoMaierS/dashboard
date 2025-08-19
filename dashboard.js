@@ -1122,17 +1122,14 @@ function addSelectedMonthBlock(monthKey) {
       console.log("data 3")
       console.log(month.historicoDiario[data])
       console.log("data 4")
-      console.log(month.historicoDiario[data].buscas)
-      console.log("data 5")
 
-      if (data >= start || data <= end) {
+      if (data >= start && data <= end) {
         monthRestructured.historicoDiario[data] = month.historicoDiario[data]
-        monthRestructured.totalBuscas += month.historicoDiario[data].buscas;
-        monthRestructured.buscasComResultado += month.historicoDiario[data].buscasComResultado
-        monthRestructured.buscasSemResultado += month.historicoDiario[data].buscasSemResultado
-        monthRestructured.pedidos += month.historicoDiario[data].pedidos
-        monthRestructured.vendas += month.historicoDiario[data].vendas
-        monthRestructured.totalBuscas += month.historicoDiario[data].totalBuscas
+        monthRestructured.buscasComResultado += month.historicoDiario[data].resumoDiario.buscasComResultado
+        monthRestructured.buscasSemResultado += month.historicoDiario[data].resumoDiario.buscasSemResultado
+        monthRestructured.pedidos += month.historicoDiario[data].resumoDiario.pedidos
+        monthRestructured.vendas += month.historicoDiario[data].resumoDiario.vendas
+        monthRestructured.totalBuscas += month.historicoDiario[data].resumoDiario.buscasComResultado + month.historicoDiario[data].resumoDiario.buscasSemResultado
 
         ctrSoma += month.historicoDiario[data].ctr
         ticketMedio += month.historicoDiario[data].ticketMedio
