@@ -683,7 +683,9 @@ function initializeModals() {
 }
 
 function addSelectedMonthBlock(monthKey) {
-  console.log('addSelectedMonthBlock 1')
+  console.log('addSelectedMonthBlock 11')
+  console.log(monthKey)
+  console.log('addSelectedMonthBlock 12')
   const dataMonths = getMonthData();
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
