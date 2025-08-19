@@ -1086,8 +1086,8 @@ function addSelectedMonthBlock(monthKey) {
   console.log(start, end)
   console.log("test 2")
 
+  /*
   const itens = Object.keys(month.historicoDiario)
-
   console.log("month 1")
   console.log(month)
   console.log("month 2")
@@ -1097,6 +1097,7 @@ function addSelectedMonthBlock(monthKey) {
   console.log("month 3")
   console.log(itens[itens.length - 1])
   console.log("month 4")
+  */
 
   if (start || end) {
     let monthRestructured = {
@@ -1119,20 +1120,22 @@ function addSelectedMonthBlock(monthKey) {
       console.log("data 1")
       console.log(data)
       console.log("data 3")
+      console.log(start, end, data < start, data > end)
+      console.log("data 4")
 
       if (data < start || data > end) {
-        monthRestructured.historicoDiario = { ...monthRestructured.historicoDiario, ...data }
-        monthRestructured.totalBuscas += data.buscas;
-        monthRestructured.buscasComResultado += data.buscasComResultado
-        monthRestructured.buscasSemResultado += data.buscasSemResultado
-        monthRestructured.pedidos += data.pedidos
-        monthRestructured.vendas += data.vendas
-        monthRestructured.totalBuscas += data.totalBuscas
-      }
+        monthRestructured.historicoDiario[data] = month.historicoDiario[data]
+        monthRestructured.totalBuscas += month.historicoDiario[data].buscas;
+        monthRestructured.buscasComResultado += month.historicoDiario[data].buscasComResultado
+        monthRestructured.buscasSemResultado += month.historicoDiario[data].buscasSemResultado
+        monthRestructured.pedidos += month.historicoDiario[data].pedidos
+        monthRestructured.vendas += month.historicoDiario[data].vendas
+        monthRestructured.totalBuscas += month.historicoDiario[data].totalBuscas
 
-      ctrSoma += data.ctr
-      ticketMedio += data.ticketMedio
-      conversaoSoma += data.conversao
+        ctrSoma += month.historicoDiario[data].ctr
+        ticketMedio += month.historicoDiario[data].ticketMedio
+        conversaoSoma += month.historicoDiario[data].conversao
+      }
     })
 
     const diasCount = Object.keys(monthRestructured.historicoDiario).length
