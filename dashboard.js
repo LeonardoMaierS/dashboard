@@ -1180,12 +1180,12 @@ function addSelectedMonthBlock(monthKey) {
 
   const container = document.getElementById('selected-months-blocks');
 
-    console.log('addSSSSSSSSSSSSSSSSSS 3')
+  console.log('addSSSSSSSSSSSSSSSSSS 3')
 
   const toggleBtn = block.querySelector('.selected-month-toggle');
   // Alterna a expansão do bloco e renderiza os gráficos diários quando expandido
 
-      console.log('addSSSSSSSSSSSSSSSSSS 4')
+  console.log('addSSSSSSSSSSSSSSSSSS 4')
 
   toggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1215,6 +1215,8 @@ function addSelectedMonthBlock(monthKey) {
       }
     }
   });
+
+  console.log('addSSSSSSSSSSSSSSSSSS 5')
 
   // Também permite expandir/recolher clicando na header do bloco (exceto botão)
   block.querySelector('.selected-month-block-header').addEventListener('click', (e) => {
@@ -1246,14 +1248,23 @@ function addSelectedMonthBlock(monthKey) {
     }
   });
 
+  console.log('addSSSSSSSSSSSSSSSSSS 6')
 
-  container.appendChild(block);
+  if (!monthsBlocksRendered.includes(monthKey)) {
+    console.log('addSSSSSSSSSSSSSSSSSS 7')
+    container.appendChild(block);
+  }
 
+  console.log('addSSSSSSSSSSSSSSSSSS 8')
   monthBlocks.set(monthKey, block);
+
+  console.log('addSSSSSSSSSSSSSSSSSS 9')
 
   const advancedToggleBtn = block.querySelector('.advanced-toggle');
   const advancedChartsContent = block.querySelector('.advanced-charts-content');
   let advancedChartsRendered = false;
+
+  console.log('addSSSSSSSSSSSSSSSSSS 10')
 
   listenMonthRange(month, monthKey)
 
