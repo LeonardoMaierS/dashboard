@@ -3,8 +3,9 @@ const MONTHS = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julh
 let tableItemLimit = 5
 let selectedMonths = []
 let monthsBlocksRendered = []
+const monthBlocks = new Map();
 
-function getMonthData(platform, dateStart, dateEnd) {
+function getMonthData(platform) {
   let data = {};
   const monthObj = window.monthsData ?? {};
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
@@ -682,55 +683,25 @@ function initializeModals() {
   });
 }
 
-function addSelectedMonthBlock(monthKey) {
-  console.log('addSelectedMonthBlock 11')
-  console.log(monthKey)
-  console.log('addSelectedMonthBlock 12')
-  const dataMonths = getMonthData();
-  const platformSelectDiv = document?.getElementById('platformCustomSelect');
-  const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
-
-  // Caso ja renderizado deve alterar somente os valores
-  if (monthsBlocksRendered.includes(monthKey)) {
-    console.log("ja esta incluso, vamos ver!")
-  } else {
-    monthsBlocksRendered.push(monthKey);
-  }
-
-
-
-
-
-  console.log('addSelectedMonthBlock 2')
-
-  let month = dataMonths[monthKey];
-
-  if (!month) return;
-
-  console.log('addSelectedMonthBlock 3')
-
-  const uniqueId = monthKey + '-' + device;
-  const container = document.getElementById('selected-months-blocks');
+function addSelectedMonth(monthKey, monthName, monthYear, uniqueId) {
   const block = document.createElement('div');
 
-  console.log("BLOCK")
-  console.log(block)
-  console.log("BLOCK")
-
   block.className = 'selected-month-block';
+  block.dataset.monthKey = monthKey;
+
   block.innerHTML = `
   <div class="selected-month-block-space">
     <div class="selected-month-block-header">
-      <h3>${month.name} ${month.year} </h3> 
+      <h3>${monthName} ${monthYear} </h3> 
       <button class="selected-month-toggle" aria-label="Expandir">
         <svg viewBox="0 0 20 20"><polyline points="6 8 10 12 14 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
     </div>
     <div class="month-range" id="monthRange">
       <label for="rangeStart">De</label>
-      <input type="date" id="rangeStart-${month.name}" name="rangeStart-${month.name}" />
+      <input type="date" id="rangeStart-${monthName}" name="rangeStart-${monthName}" />
       <label for="rangeEnd">Até</label>
-      <input type="date" id="rangeEnd-${month.name}" name="rangeEnd-${month.name}" />
+      <input type="date" id="rangeEnd-${monthName}" name="rangeEnd-${monthName}" />
     </div>
   </div>
 
@@ -744,7 +715,7 @@ function addSelectedMonthBlock(monthKey) {
           <span class="info-trigger" data-modal="modal-info-proporcao-${uniqueId}">i</span>
         </div>
         <div class="mes-chart-desc">
-          Pizza e tabela com o percentual e volume de buscas que retornaram produtos versus as que não retornaram durante <b>${month.name} de ${month.year}</b>.
+          Pizza e tabela com o percentual e volume de buscas que retornaram produtos versus as que não retornaram durante <b>${monthName} de ${monthYear}</b>.
         </div>
       </div>
       
@@ -765,7 +736,7 @@ function addSelectedMonthBlock(monthKey) {
           <span class="info-trigger" data-modal="info-evol-diaria-com-resultado-${uniqueId}">i</span>
         </div>
         <div class="mes-chart-desc">
-          Gráfico de linha mostrando o volume diário de buscas com retorno de produtos em <b>${month.name} de ${month.year}</b>.
+          Gráfico de linha mostrando o volume diário de buscas com retorno de produtos em <b>${monthName} de ${monthYear}</b>.
         </div>
       </div>
       <canvas id="lineEvolucaoBuscasComResultado-${uniqueId}"></canvas>
@@ -779,7 +750,7 @@ function addSelectedMonthBlock(monthKey) {
           <span class="info-trigger" data-modal="info-evol-diaria-sem-resultado-${uniqueId}">i</span>
         </div>
         <div class="mes-chart-desc">
-          Volume diário de buscas que não retornaram produtos em <b>${month.name} de ${month.year}</b>.
+          Volume diário de buscas que não retornaram produtos em <b>${monthName} de ${monthYear}</b>.
         </div>
       </div>
       <canvas id="lineEvolucaoBuscasSemResultado-${uniqueId}"></canvas>
@@ -792,7 +763,7 @@ function addSelectedMonthBlock(monthKey) {
           <span class="info-trigger" data-modal="info-evol-diaria-str-${uniqueId}">i</span>
         </div>
         <div class="mes-chart-desc">
-          Cliques gerados pelas buscas, dia a dia em <b>${month.name} de ${month.year}</b>.
+          Cliques gerados pelas buscas, dia a dia em <b>${monthName} de ${monthYear}</b>.
         </div>
       </div>
       <canvas id="lineEvolucaoSTR-${uniqueId}"></canvas>
@@ -806,7 +777,7 @@ function addSelectedMonthBlock(monthKey) {
           <span class="info-trigger" data-modal="info-evol-diaria-ctr-${uniqueId}">i</span>
         </div>
         <div class="mes-chart-desc">
-          Clique por busca (%) ao longo de cada dia em <b>${month.name} de ${month.year}</b>.
+          Clique por busca (%) ao longo de cada dia em <b>${monthName} de ${monthYear}</b>.
         </div>
       </div>
       <canvas id="lineEvolucaoCTR-${uniqueId}"></canvas>
@@ -832,7 +803,7 @@ function addSelectedMonthBlock(monthKey) {
                 <span class="info-trigger" data-modal="info-top10-com-resultado-${uniqueId}">i</span>
               </div>
               <div class="advanced-chart-desc">
-                Gráfico de barras com os 10 termos mais buscados que retornaram resultados no site durante <b>${month.name} de ${month.year}</b>.
+                Gráfico de barras com os 10 termos mais buscados que retornaram resultados no site durante <b>${monthName} de ${monthYear}</b>.
               </div>
             </div>
             <canvas id="barTop10BuscasComResultado-${uniqueId}"></canvas>
@@ -862,7 +833,7 @@ function addSelectedMonthBlock(monthKey) {
                 <span class="info-trigger" data-modal="info-com-sem-venda-${uniqueId}">i</span>
               </div>
               <div class="advanced-chart-desc">
-                Termos de busca que exibiram produtos, mas não geraram vendas em <b>${month.name} de ${month.year}</b>.
+                Termos de busca que exibiram produtos, mas não geraram vendas em <b>${monthName} de ${monthYear}</b>.
               </div>
             </div>
             <canvas id="barBuscasComResultadoSemVendas-${uniqueId}"></canvas>
@@ -877,7 +848,7 @@ function addSelectedMonthBlock(monthKey) {
                 <span class="info-trigger" data-modal="info-pie-top10-com-resultado-${uniqueId}">i</span>
               </div>
               <div class="advanced-chart-desc">
-                Pizza com a proporção das 10 principais buscas com resultado durante <b>${month.name} de ${month.year}</b>.
+                Pizza com a proporção das 10 principais buscas com resultado durante <b>${monthName} de ${monthYear}</b>.
               </div>
             </div>
             <div class="pizza-table-row">
@@ -896,7 +867,7 @@ function addSelectedMonthBlock(monthKey) {
                 <span class="info-trigger" data-modal="info-pie-top10-sem-venda-${uniqueId}">i</span>
               </div>
               <div class="advanced-chart-desc">
-                Pizza com a proporção das 10 principais buscas sem venda durante <b>${month.name} de ${month.year}</b>.
+                Pizza com a proporção das 10 principais buscas sem venda durante <b>${monthName} de ${monthYear}</b>.
               </div>
             </div>
             <div class="pizza-table-row">
@@ -915,7 +886,7 @@ function addSelectedMonthBlock(monthKey) {
                 <span class="info-trigger" data-modal="info-pie-top10-sem-resultado-${uniqueId}">i</span>
               </div>
               <div class="advanced-chart-desc">
-                Pizza com a proporção das 10 principais buscas sem resultado durante <b>${month.name} de ${month.year}</b>.
+                Pizza com a proporção das 10 principais buscas sem resultado durante <b>${monthName} de ${monthYear}</b>.
               </div>
             </div>
             <div class="pizza-table-row">
@@ -1079,76 +1050,128 @@ function addSelectedMonthBlock(monthKey) {
   </div>
   `;
 
+  return block;
+}
+
+function updateSelectedMonthBlock(monthKey, view) {
+  const block = monthBlocks.get(monthKey)
+    || document.querySelector(`.month-block[data-month-key="${monthKey}"]`);
+  if (!block) return;
+
+  block.querySelector('[data-role="title"]').textContent = view.title || monthKey;
+  block.querySelector('[data-role="kpi-ok"]').textContent = view.kpis.searches_with_result;
+  block.querySelector('[data-role="kpi-nok"]').textContent = view.kpis.searches_without_result;
+  block.querySelector('[data-role="kpi-clicks"]').textContent = view.kpis.clicks;
+  block.querySelector('[data-role="kpi-ctr"]').textContent = `${(view.kpis.ctr_avg || 0).toFixed(2)}%`;
+
+  block.querySelector('[data-role="tables"]').innerHTML = view.tablesHTML || '';
+}
+
+function addSelectedMonthBlock(monthKey) {
+  console.log('addSelectedMonthBlock 11')
+  console.log(monthKey)
+  console.log('addSelectedMonthBlock 12')
+  const dataMonths = getMonthData();
+  const platformSelectDiv = document?.getElementById('platformCustomSelect');
+  const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
+  const uniqueId = `${monthKey}-${device}`;
+  let month = dataMonths[monthKey];
+  let block;
+
   // TODO - quando alterar a data deve filtrar aqui de acordo com a data definida
-  function _monthDataRestructuring(month) {
-    const start = document.getElementById(`rangeStart-${month.name}`)?.value;
-    const end = document.getElementById(`rangeEnd-${month.name}`)?.value;
+  const start = document.getElementById(`rangeStart-${month.name}`)?.value;
+  const end = document.getElementById(`rangeEnd-${month.name}`)?.value;
 
-    console.log("test 1")
-    console.log(start, end)
-    console.log("test 2")
-    const itens = Object.keys(month.historicoDiario)
+  console.log("test 1")
+  console.log(start, end)
+  console.log("test 2")
 
-    console.log("month 1")
-    console.log(month)
-    console.log("month 2")
-    console.log(itens)
-    console.log("month 22")
-    console.log(itens[0])
-    console.log("month 3")
-    console.log(itens[itens.length - 1])
-    console.log("month 4")
+  const itens = Object.keys(month.historicoDiario)
 
-    if (start || end) {
-      let monthRestructured = {
-        name: month.name,
-        year: month.year,
-        available: true,
-        buscasComResultado: 0,
-        buscasSemResultado: 0,
-        pedidos: 0,
-        totalBuscas: 0,
-        vendas: 0,
-        historicoDiario: {}
+  console.log("month 1")
+  console.log(month)
+  console.log("month 2")
+  console.log(itens)
+  console.log("month 22")
+  console.log(itens[0])
+  console.log("month 3")
+  console.log(itens[itens.length - 1])
+  console.log("month 4")
+
+  if (start || end) {
+    let monthRestructured = {
+      name: month.name,
+      year: month.year,
+      available: true,
+      buscasComResultado: 0,
+      buscasSemResultado: 0,
+      pedidos: 0,
+      totalBuscas: 0,
+      vendas: 0,
+      historicoDiario: {}
+    }
+
+    let ctrSoma = 0
+    let ticketMedio = 0
+    let conversaoSoma = 0
+
+    Object.keys(month.historicoDiario).forEach(data => {
+      console.log("data 1")
+      console.log(data)
+      console.log("data 3")
+
+      if (data < start || data > end) {
+        monthRestructured.historicoDiario = { ...monthRestructured.historicoDiario, ...data }
+        monthRestructured.totalBuscas += data.buscas;
+        monthRestructured.buscasComResultado += data.buscasComResultado
+        monthRestructured.buscasSemResultado += data.buscasSemResultado
+        monthRestructured.pedidos += data.pedidos
+        monthRestructured.vendas += data.vendas
+        monthRestructured.totalBuscas += data.totalBuscas
       }
 
-      let ctrSoma = 0
-      let ticketMedio = 0
-      let conversaoSoma = 0
+      ctrSoma += data.ctr
+      ticketMedio += data.ticketMedio
+      conversaoSoma += data.conversao
+    })
 
-      Object.keys(month.historicoDiario).forEach(data => {
-        console.log("data 1")
-        console.log(data)
-        console.log("data 3")
+    const diasCount = Object.keys(monthRestructured.historicoDiario).length
 
-        if (data < start || data > end) {
-          monthRestructured.historicoDiario = { ...monthRestructured.historicoDiario, ...data }
-          monthRestructured.totalBuscas += data.buscas;
-          monthRestructured.buscasComResultado += data.buscasComResultado
-          monthRestructured.buscasSemResultado += data.buscasSemResultado
-          monthRestructured.pedidos += data.pedidos
-          monthRestructured.vendas += data.vendas
-          monthRestructured.totalBuscas += data.totalBuscas
-        }
+    monthRestructured.conversao = diasCount ? +(monthRestructured.conversaoSoma / diasCount).toFixed(2) : 0;
+    monthRestructured.ctr = diasCount ? +(monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
+    monthRestructured.ticketMedio = diasCount ? +(monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
 
-        ctrSoma += data.ctr
-        ticketMedio += data.ticketMedio
-        conversaoSoma += data.conversao
-      })
-
-      const diasCount = Object.keys(monthRestructured.historicoDiario).length
-
-      monthRestructured.conversao = diasCount ? +(monthRestructured.conversaoSoma / diasCount).toFixed(2) : 0;
-      monthRestructured.ctr = diasCount ? +(monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
-      monthRestructured.ticketMedio = diasCount ? +(monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
-
-      return monthRestructured
-    } else {
-      return month
-    }
+    month = monthRestructured
   }
 
-  month = _monthDataRestructuring(month)
+  const aaa = 
+
+  // Caso ja renderizado deve alterar somente os valores
+  if (monthsBlocksRendered.includes(monthKey)) {
+    console.log("JA INCLUSO, DEVE ATUALIZAR O BLOCK!")
+
+    block = monthBlocks.get(monthKey) || document.querySelector(`.month-block[data-month-key="${monthKey}"]`);
+
+    console.log("BLOCK 111")
+    console.log(block)
+    console.log("BLOCK 112")
+  } else {
+    console.log("NOVO, INCLUINDO NOVO BLOCK!")
+
+    block = addSelectedMonth(monthKey, month.name, month.year, uniqueId)
+
+    console.log("BLOCK 222")
+    console.log(block)
+    console.log("BLOCK 223")
+
+    monthsBlocksRendered.push(monthKey);
+  }
+
+  console.log('addSelectedMonthBlock 2')
+
+  // TODO - se nao fizer falta -> if (!month) return;
+
+  const container = document.getElementById('selected-months-blocks');
 
   const toggleBtn = block.querySelector('.selected-month-toggle');
   // Alterna a expansão do bloco e renderiza os gráficos diários quando expandido
@@ -1213,14 +1236,13 @@ function addSelectedMonthBlock(monthKey) {
   });
 
   container.appendChild(block);
+  monthBlocks.set(monthKey, block);
 
   const advancedToggleBtn = block.querySelector('.advanced-toggle');
   const advancedChartsContent = block.querySelector('.advanced-charts-content');
   let advancedChartsRendered = false;
 
   listenMonthRange(month, monthKey)
-
-
 
   // Alterna a área de indicadores avançados. Ao abrir pela primeira vez,
   // os gráficos são renderizados utilizando os dados do mês.
