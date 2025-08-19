@@ -1064,9 +1064,6 @@ function addSelectedMonthBlock(monthKey) {
     const start = document.getElementById(`rangeStart-${month.name}`)?.value;
     const end = document.getElementById(`rangeEnd-${month.name}`)?.value;
 
-
-    // TODO - validar todo o fluxo
-
     console.log("test 1")
     console.log(start, end)
     console.log("test 2")
@@ -1100,6 +1097,10 @@ function addSelectedMonthBlock(monthKey) {
       let conversaoSoma = 0
 
       Object.keys(month.historicoDiario).forEach(data => {
+        console.log("data 1")
+        console.log(data)
+        console.log("data 3")
+
         if (data < start || data > end) {
           monthRestructured.historicoDiario = { ...monthRestructured.historicoDiario, ...data }
           monthRestructured.totalBuscas += data.buscas;
