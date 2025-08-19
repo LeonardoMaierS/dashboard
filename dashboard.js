@@ -698,9 +698,9 @@ function addSelectedMonth(monthKey, monthName, monthYear, uniqueId) {
       </button>
     </div>
     <div class="month-range" id="monthRange">
-      <label for="rangeStart">De</label>
+      <label for="rangeStart-${monthName}">De</label>
       <input type="date" id="rangeStart-${monthName}" name="rangeStart-${monthName}" />
-      <label for="rangeEnd">Até</label>
+      <label for="rangeEnd-${monthName}">Até</label>
       <input type="date" id="rangeEnd-${monthName}" name="rangeEnd-${monthName}" />
     </div>
   </div>
@@ -1068,9 +1068,9 @@ function updateSelectedMonthBlock(monthKey, view) {
 }
 
 function addSelectedMonthBlock(monthKey) {
-  console.log('addSelectedMonthBlock 11')
+  console.log('adddddddddddddddddd 11')
   console.log(monthKey)
-  console.log('addSelectedMonthBlock 12')
+  console.log('adddddddddddddddddd 12')
   const dataMonths = getMonthData();
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
@@ -1143,7 +1143,10 @@ function addSelectedMonthBlock(monthKey) {
     monthRestructured.ctr = diasCount ? +(monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
     monthRestructured.ticketMedio = diasCount ? +(monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
 
-    month = monthRestructured
+    // month = monthRestructured
+    console.log("monthRestructured 1")
+    console.log(monthRestructured)
+    console.log("monthRestructured 2")
   }
 
   console.log("MONTHHHHHHHHHHHHHHHHHHHHHHHHH 1")
@@ -1154,7 +1157,7 @@ function addSelectedMonthBlock(monthKey) {
   if (monthsBlocksRendered.includes(monthKey)) {
     console.log("JA INCLUSO, DEVE ATUALIZAR O BLOCK!")
 
-    block = monthBlocks.get(monthKey) || document.querySelector(`.month-block[data-month-key="${monthKey}"]`);
+    block = monthBlocks.get(monthKey)
 
     console.log("BLOCK 111")
     console.log(block)
@@ -1171,14 +1174,18 @@ function addSelectedMonthBlock(monthKey) {
     monthsBlocksRendered.push(monthKey);
   }
 
-  console.log('addSelectedMonthBlock 2')
+  console.log('addSSSSSSSSSSSSSSSSSS 2')
 
   // TODO - se nao fizer falta -> if (!month) return;
 
   const container = document.getElementById('selected-months-blocks');
 
+    console.log('addSSSSSSSSSSSSSSSSSS 3')
+
   const toggleBtn = block.querySelector('.selected-month-toggle');
   // Alterna a expansão do bloco e renderiza os gráficos diários quando expandido
+
+      console.log('addSSSSSSSSSSSSSSSSSS 4')
 
   toggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1239,7 +1246,9 @@ function addSelectedMonthBlock(monthKey) {
     }
   });
 
+
   container.appendChild(block);
+
   monthBlocks.set(monthKey, block);
 
   const advancedToggleBtn = block.querySelector('.advanced-toggle');
