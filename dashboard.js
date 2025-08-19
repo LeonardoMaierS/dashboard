@@ -690,8 +690,16 @@ function addSelectedMonthBlock(monthKey) {
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
 
-  if (monthsBlocksRendered.includes(monthKey)) return;
-  monthsBlocksRendered.push(monthKey);
+  // Caso ja renderizado deve alterar somente os valores
+  if (monthsBlocksRendered.includes(monthKey)) {
+    console.log("ja esta incluso, vamos ver!")
+  } else {
+    monthsBlocksRendered.push(monthKey);
+  }
+
+
+
+
 
   console.log('addSelectedMonthBlock 2')
 
