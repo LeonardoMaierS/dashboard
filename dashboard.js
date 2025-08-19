@@ -1075,6 +1075,7 @@ function addSelectedMonthBlock(monthKey) {
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
   const uniqueId = `${monthKey}-${device}`;
+  let firstInclusion = false;
   let month = dataMonths[monthKey];
   let block;
 
@@ -1171,6 +1172,7 @@ function addSelectedMonthBlock(monthKey) {
     console.log(block)
     console.log("BLOCK 223")
 
+    firstInclusion = true
     monthsBlocksRendered.push(monthKey);
   }
 
@@ -1250,7 +1252,7 @@ function addSelectedMonthBlock(monthKey) {
 
   console.log('addSSSSSSSSSSSSSSSSSS 6')
 
-  if (!monthsBlocksRendered.includes(monthKey)) {
+  if (firstInclusion) {
     console.log('addSSSSSSSSSSSSSSSSSS 7')
     container.appendChild(block);
   }
