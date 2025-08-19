@@ -1144,8 +1144,6 @@ function addSelectedMonthBlock(monthKey) {
     month = monthRestructured
   }
 
-  const aaa = 
-
   // Caso ja renderizado deve alterar somente os valores
   if (monthsBlocksRendered.includes(monthKey)) {
     console.log("JA INCLUSO, DEVE ATUALIZAR O BLOCK!")
