@@ -1718,6 +1718,8 @@ function listenMonthRange(month, monthKey) {
 
   if (!(start && end)) return;
 
+  console.log("ALTEROU!!!!!!!!!!!!!!!!!!!!!!!!!")
+
   function onChange() {
     const startDate = start.value;
     const endDate = end.value;
