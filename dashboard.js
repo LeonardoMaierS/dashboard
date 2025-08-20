@@ -1126,10 +1126,14 @@ function addSelectedMonthBlock(monthKey) {
   if (monthsBlocksRendered.includes(monthKey)) {
     console.log("JA INCLUSO, DEVE ATUALIZAR O BLOCK!")
 
-    // TODO - test block = monthBlocks.get(monthKey)
-    // block = addSelectedMonth(monthKey, month.name, month.year, uniqueId)
+    console.log(monthKey)
 
-    // block = atualizarSelectedMonthBlock(monthKey, month)
+    block = document.getElementById(monthKey)
+
+    console.log("block 1111111111111111111111111111 1")
+    console.log(block)
+    console.log("block 1111111111111111111111111111 2")
+
   } else {
     console.log("NOVO, INCLUINDO NOVO BLOCK!")
 
