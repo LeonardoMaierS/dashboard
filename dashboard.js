@@ -1079,7 +1079,7 @@ function addSelectedMonthBlock(monthKey) {
     }
 
     let ctrSoma = 0
-    let ticketMedio = 0
+    let ticketMedioSoma = 0
     let conversaoSoma = 0
 
     Object.keys(month.historicoDiario).forEach(data => {
@@ -1092,7 +1092,7 @@ function addSelectedMonthBlock(monthKey) {
         monthRestructured.totalBuscas += month.historicoDiario[data].resumoDiario.buscasComResultado + month.historicoDiario[data].resumoDiario.buscasSemResultado
 
         ctrSoma += month.historicoDiario[data].resumoDiario.ctr
-        ticketMedio += month.historicoDiario[data].resumoDiario.ticketMedio
+        ticketMedioSoma += month.historicoDiario[data].resumoDiario.ticketMedio
         conversaoSoma += month.historicoDiario[data].resumoDiario.conversao
       }
     })
@@ -1101,7 +1101,7 @@ function addSelectedMonthBlock(monthKey) {
 
     monthRestructured.conversao = (conversaoSoma / diasCount).toFixed(2);
     monthRestructured.ctr = (ctrSoma / diasCount).toFixed(1);
-    monthRestructured.ticketMedio = (ticketSoma / diasCount).toFixed(2);
+    monthRestructured.ticketMedio = (ticketMedioSoma / diasCount).toFixed(2);
 
     month = monthRestructured
   }
