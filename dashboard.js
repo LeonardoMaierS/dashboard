@@ -1136,6 +1136,12 @@ function addSelectedMonthBlock(monthKey) {
     console.log(xxx)
     console.log(yyy)
     console.log("block 1111111111111111111111111111 2")
+    const WWW = monthBlocks.get(monthKey);
+
+    console.log(WWW)
+    console.log("block 1111111111111111111111111111 3")
+    console.log(monthBlocks)
+    console.log("block 1111111111111111111111111111 4")
 
   } else {
     console.log("NOVO, INCLUINDO NOVO BLOCK!")
