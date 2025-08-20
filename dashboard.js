@@ -1268,8 +1268,12 @@ function addSelectedMonthBlock(monthKey) {
 
   console.log('addSSSSSSSSSSSSSSSSSS 10')
 
-  listenMonthRange(month, monthKey)
+  if (firstInclusion) {
+    console.log('addSSSSSSSSSSSSSSSSSS 11')
+    listenMonthRange(month, monthKey)
+  }
 
+  console.log('addSSSSSSSSSSSSSSSSSS 12')
   // Alterna a área de indicadores avançados. Ao abrir pela primeira vez,
   // os gráficos são renderizados utilizando os dados do mês.
   advancedToggleBtn.addEventListener('click', (e) => {
@@ -1380,6 +1384,8 @@ function addSelectedMonthBlock(monthKey) {
       }
     }
   });
+
+  console.log('addSSSSSSSSSSSSSSSSSS 13')
 }
 
 function renderMonthBlockCharts(monthKey, uniqueId) {
