@@ -1128,10 +1128,13 @@ function addSelectedMonthBlock(monthKey) {
 
     console.log(monthKey)
 
-    block = document.getElementById(monthKey)
+    const xxx = document.querySelector(`.month-block[data-month-key="${monthKey}"]`);
+    const yyy = document.querySelector(`.selected-month-block[data-month-key="${monthKey}"]`);
+
 
     console.log("block 1111111111111111111111111111 1")
-    console.log(block)
+    console.log(xxx)
+    console.log(yyy)
     console.log("block 1111111111111111111111111111 2")
 
   } else {
