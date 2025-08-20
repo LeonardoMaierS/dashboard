@@ -1126,35 +1126,19 @@ function addSelectedMonthBlock(monthKey) {
   if (monthsBlocksRendered.includes(monthKey)) {
     console.log("JA INCLUSO, DEVE ATUALIZAR O BLOCK!")
 
-    console.log(monthKey)
-
-    const xxx = document.querySelector(`.month-block[data-month-key="${monthKey}"]`);
-    const yyy = document.querySelector(`.selected-month-block[data-month-key="${monthKey}"]`);
-
-
-    console.log("block 1111111111111111111111111111 1")
-    console.log(xxx)
-    console.log(yyy)
-    console.log("block 1111111111111111111111111111 2")
-    const WWW = monthBlocks.get(monthKey);
-
-    console.log(WWW)
-    console.log("block 1111111111111111111111111111 3")
-    console.log(monthBlocks)
-    console.log("block 1111111111111111111111111111 4")
-
+    block = monthBlocks.get(monthKey);
   } else {
     console.log("NOVO, INCLUINDO NOVO BLOCK!")
 
     block = addSelectedMonth(monthKey, month.name, month.year, uniqueId)
 
-    console.log("BLOCK 222")
-    console.log(block)
-    console.log("BLOCK 223")
-
     firstInclusion = true
     monthsBlocksRendered.push(monthKey);
   }
+
+  console.log("BLOCK 222")
+  console.log(block)
+  console.log("BLOCK 223")
 
   console.log('addSSSSSSSSSSSSSSSSSS 2')
 
@@ -1739,7 +1723,6 @@ function listenMonthRange(month, monthKey) {
     const endDate = end.value;
 
     if (startDate && endDate && startDate <= endDate) {
-      console.log("Intervalo selecionado:", startDate, "até", endDate);
       addSelectedMonthBlock(monthKey)
     }
   }
