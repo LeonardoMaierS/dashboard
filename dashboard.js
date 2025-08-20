@@ -1068,45 +1068,71 @@ function updateSelectedMonthBlock(monthKey, view) {
 }
 
 function atualizarSelectedMonthBlock(monthKey, month) {
-  const block = monthBlocks.get(monthKey);
-  console.log("9999999999999999999999999999 1")
+  // bloco (Map -> DOM -> fallback)
+  const block =
+    (typeof monthBlocks !== 'undefined' && monthBlocks.get && monthBlocks.get(monthKey)) ||
+    document.querySelector(`.month-block[data-month-key="${monthKey}"]`) ||
+    document.querySelector(`.selected-month-block[data-month-key="${monthKey}"]`);
+
+  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 1")
+
   if (!block) return;
-  console.log("9999999999999999999999999999 2")
+
+  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 2")
   console.log(monthKey, month)
-  console.log("9999999999999999999999999999 3")
+  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 3")
 
-  // 1. Atualiza KPIs no bloco
-  block.querySelector('[data-role="title"]').textContent = `${month.name} ${month.year}`;
-  block.querySelector('[data-role="kpi-ok"]').textContent = month.buscasComResultado.toLocaleString();
-  block.querySelector('[data-role="kpi-nok"]').textContent = month.buscasSemResultado.toLocaleString();
-  block.querySelector('[data-role="kpi-clicks"]').textContent = month.pedidos.toLocaleString();
-  block.querySelector('[data-role="kpi-ctr"]').textContent = `${month.ctr.toFixed(1)}%`;
+  // título (vários fallbacks)
+  const titleEl =
+    block.querySelector('[data-role="title"]') ||
+    block.querySelector('.selected-month-title') ||
+    block.querySelector('.selected-month-block-header h3');
+  if (titleEl) titleEl.textContent = `${month.name} ${month.year}`;
 
-  // 2. Re-renderiza os gráficos usando as funções já existentes
-  const uniqueId = block.dataset.uniqueId;
-  renderPieProporcaoBuscas(uniqueId, month);
-  renderLineEvolucaoBuscasComResultado(uniqueId, month);
-  renderLineEvolucaoBuscasSemResultado(uniqueId, month);
-  renderLineEvolucaoSTR(uniqueId, month);
-  renderLineEvolucaoCTR(uniqueId, month);
+  // KPIs (só define se existir no DOM)
+  const kpiOk = block.querySelector('[data-role="kpi-ok"]') || block.querySelector('.kpi-ok');
+  const kpiNok = block.querySelector('[data-role="kpi-nok"]') || block.querySelector('.kpi-nok');
+  const kpiClk = block.querySelector('[data-role="kpi-clicks"]') || block.querySelector('.kpi-clicks');
+  const kpiCtr = block.querySelector('[data-role="kpi-ctr"]') || block.querySelector('.kpi-ctr');
 
-  // 3. Atualiza a tabela de proporção de buscas
-  const total = Object.values(month.historicoDiario || {}).reduce(
-    (acc, d) => {
-      acc.com += Number(d.resumoDiario?.buscasComResultado || 0);
-      acc.sem += Number(d.resumoDiario?.buscasSemResultado || 0);
-      return acc;
-    }, { com: 0, sem: 0 }
-  );
-  const proporcaoRows = [
-    ['Com Resultado', total.com.toLocaleString(),
-      (total.com + total.sem) ? ((total.com / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%'],
-    ['Sem Resultado', total.sem.toLocaleString(),
-      (total.com + total.sem) ? ((total.sem / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%']
+  if (kpiOk) kpiOk.textContent = (month.buscasComResultado ?? 0).toLocaleString();
+  if (kpiNok) kpiNok.textContent = (month.buscasSemResultado ?? 0).toLocaleString();
+  if (kpiClk) kpiClk.textContent = (month.pedidos ?? 0).toLocaleString();
+  if (kpiCtr) kpiCtr.textContent = `${Number(month.ctr ?? 0).toFixed(1)}%`;
+
+  // uniqueId para gráficos/tabelas
+  let uniqueId = block.dataset.uniqueId;
+  if (!uniqueId) {
+    const platformSelectDiv = document.getElementById('platformCustomSelect');
+    const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase() || 'all';
+    uniqueId = `${monthKey}-${device}`;
+    block.dataset.uniqueId = uniqueId; // cache
+  }
+
+  // gráficos (só chama se as funções existem)
+  if (typeof renderPieProporcaoBuscas === 'function') renderPieProporcaoBuscas(uniqueId, month);
+  if (typeof renderLineEvolucaoBuscasComResultado === 'function') renderLineEvolucaoBuscasComResultado(uniqueId, month);
+  if (typeof renderLineEvolucaoBuscasSemResultado === 'function') renderLineEvolucaoBuscasSemResultado(uniqueId, month);
+  if (typeof renderLineEvolucaoSTR === 'function') renderLineEvolucaoSTR(uniqueId, month);
+  if (typeof renderLineEvolucaoCTR === 'function') renderLineEvolucaoCTR(uniqueId, month);
+
+  // tabela de proporção (fallbacks de destino)
+  const total = Object.values(month.historicoDiario || {}).reduce((acc, d) => {
+    acc.com += Number(d?.resumoDiario?.buscasComResultado || 0);
+    acc.sem += Number(d?.resumoDiario?.buscasSemResultado || 0);
+    return acc;
+  }, { com: 0, sem: 0 });
+
+  const rows = [
+    ['Com Resultado', total.com.toLocaleString(), (total.com + total.sem) ? ((total.com / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%'],
+    ['Sem Resultado', total.sem.toLocaleString(), (total.com + total.sem) ? ((total.sem / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%']
   ];
-  const tableEl = block.querySelector(`#table-pieProporcaoBuscas-${uniqueId}`);
-  if (tableEl) {
-    tableEl.innerHTML = generateTableHTML(['Tipo', 'Buscas', 'Proporção'], proporcaoRows);
+
+  const tableTarget =
+    document.getElementById(`table-pieProporcaoBuscas-${uniqueId}`) ||
+    block.querySelector('[data-role="table-proporcao"]');
+  if (tableTarget && typeof generateTableHTML === 'function') {
+    tableTarget.innerHTML = generateTableHTML(['Tipo', 'Buscas', 'Proporção'], rows);
   }
 }
 
