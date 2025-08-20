@@ -1067,7 +1067,48 @@ function updateSelectedMonthBlock(monthKey, view) {
   block.querySelector('[data-role="tables"]').innerHTML = view.tablesHTML || '';
 }
 
-function addSelectedMonthBlock(monthKey) {
+function atualizarSelectedMonthBlock(monthKey, month) {
+  const block = monthBlocks.get(monthKey);
+  console.log("9999999999999999999999999999 1")
+  if (!block) return;
+  console.log("9999999999999999999999999999 2")
+
+  // 1. Atualiza KPIs no bloco
+  block.querySelector('[data-role="title"]').textContent = `${month.name} ${month.year}`;
+  block.querySelector('[data-role="kpi-ok"]').textContent = month.buscasComResultado.toLocaleString();
+  block.querySelector('[data-role="kpi-nok"]').textContent = month.buscasSemResultado.toLocaleString();
+  block.querySelector('[data-role="kpi-clicks"]').textContent = month.pedidos.toLocaleString();
+  block.querySelector('[data-role="kpi-ctr"]').textContent = `${month.ctr.toFixed(1)}%`;
+
+  // 2. Re-renderiza os gráficos usando as funções já existentes
+  const uniqueId = block.dataset.uniqueId;
+  renderPieProporcaoBuscas(uniqueId, month);
+  renderLineEvolucaoBuscasComResultado(uniqueId, month);
+  renderLineEvolucaoBuscasSemResultado(uniqueId, month);
+  renderLineEvolucaoSTR(uniqueId, month);
+  renderLineEvolucaoCTR(uniqueId, month);
+
+  // 3. Atualiza a tabela de proporção de buscas
+  const total = Object.values(month.historicoDiario || {}).reduce(
+    (acc, d) => {
+      acc.com += Number(d.resumoDiario?.buscasComResultado || 0);
+      acc.sem += Number(d.resumoDiario?.buscasSemResultado || 0);
+      return acc;
+    }, { com: 0, sem: 0 }
+  );
+  const proporcaoRows = [
+    ['Com Resultado', total.com.toLocaleString(),
+      (total.com + total.sem) ? ((total.com / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%'],
+    ['Sem Resultado', total.sem.toLocaleString(),
+      (total.com + total.sem) ? ((total.sem / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%']
+  ];
+  const tableEl = block.querySelector(`#table-pieProporcaoBuscas-${uniqueId}`);
+  if (tableEl) {
+    tableEl.innerHTML = generateTableHTML(['Tipo', 'Buscas', 'Proporção'], proporcaoRows);
+  }
+}
+
+function addSelectedMonthBlock(monthKey, id) {
   console.log('adddddddddddddddddd 11')
   console.log(monthKey)
   console.log('adddddddddddddddddd 12')
@@ -1076,7 +1117,7 @@ function addSelectedMonthBlock(monthKey) {
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
 
   // TODO - test random id
-  const idRandom = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+  const idRandom = id ?? `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 
   const uniqueId = `${monthKey}-${device}-${idRandom}`;
   let firstInclusion = false;
@@ -1145,7 +1186,9 @@ function addSelectedMonthBlock(monthKey) {
     console.log("JA INCLUSO, DEVE ATUALIZAR O BLOCK!")
 
     // TODO - test block = monthBlocks.get(monthKey)
-    block = addSelectedMonth(monthKey, month.name, month.year, uniqueId)
+    // block = addSelectedMonth(monthKey, month.name, month.year, uniqueId)
+
+    atualizarSelectedMonthBlock(monthKey, month)
 
     console.log("BLOCK 111")
     console.log(block)
