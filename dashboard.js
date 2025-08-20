@@ -1087,19 +1087,6 @@ function addSelectedMonthBlock(monthKey) {
   console.log(start, end)
   console.log("test 2")
 
-  /*
-  const itens = Object.keys(month.historicoDiario)
-  console.log("month 1")
-  console.log(month)
-  console.log("month 2")
-  console.log(itens)
-  console.log("month 22")
-  console.log(itens[0])
-  console.log("month 3")
-  console.log(itens[itens.length - 1])
-  console.log("month 4")
-  */
-
   if (start || end) {
     let monthRestructured = {
       name: month.name,
@@ -1118,12 +1105,6 @@ function addSelectedMonthBlock(monthKey) {
     let conversaoSoma = 0
 
     Object.keys(month.historicoDiario).forEach(data => {
-      console.log("data 1")
-      console.log(data, start, end, data >= start, data <= end)
-      console.log("data 3")
-      console.log(month.historicoDiario[data])
-      console.log("data 4")
-
       if (data >= start && data <= end) {
         monthRestructured.historicoDiario[data] = month.historicoDiario[data]
         monthRestructured.buscasComResultado += month.historicoDiario[data].resumoDiario.buscasComResultado
@@ -1140,14 +1121,15 @@ function addSelectedMonthBlock(monthKey) {
 
     const diasCount = Object.keys(monthRestructured.historicoDiario).length
 
-    monthRestructured.conversao = diasCount ? +(monthRestructured.conversaoSoma / diasCount).toFixed(2) : 0;
-    monthRestructured.ctr = diasCount ? +(monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
-    monthRestructured.ticketMedio = diasCount ? +(monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
+    monthRestructured.conversao = 0 // TODO - diasCount ? +(monthRestructured.conversaoSoma / diasCount).toFixed(2) : 0;
+    monthRestructured.ctr = 0 // TODO - diasCount ? +(monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
+    monthRestructured.ticketMedio = 0 // TODO - diasCount ? +(monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
 
     // month = monthRestructured
     console.log("monthRestructured 1")
     console.log(monthRestructured)
     console.log("monthRestructured 2")
+    month = monthRestructured
   }
 
   console.log("MONTHHHHHHHHHHHHHHHHHHHHHHHHH 1")
@@ -1158,7 +1140,8 @@ function addSelectedMonthBlock(monthKey) {
   if (monthsBlocksRendered.includes(monthKey)) {
     console.log("JA INCLUSO, DEVE ATUALIZAR O BLOCK!")
 
-    block = monthBlocks.get(monthKey)
+    // TODO - test block = monthBlocks.get(monthKey)
+    block = addSelectedMonth(monthKey, month.name, month.year, uniqueId)
 
     console.log("BLOCK 111")
     console.log(block)
