@@ -1072,6 +1072,8 @@ function atualizarSelectedMonthBlock(monthKey, month) {
   console.log("9999999999999999999999999999 1")
   if (!block) return;
   console.log("9999999999999999999999999999 2")
+  console.log(monthKey, month)
+  console.log("9999999999999999999999999999 3")
 
   // 1. Atualiza KPIs no bloco
   block.querySelector('[data-role="title"]').textContent = `${month.name} ${month.year}`;
