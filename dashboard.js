@@ -1099,9 +1099,21 @@ function addSelectedMonthBlock(monthKey) {
 
     const diasCount = Object.keys(monthRestructured.historicoDiario).length
 
-    monthRestructured.conversao = 0 // TODO - diasCount ? +(monthRestructured.conversaoSoma / diasCount).toFixed(2) : 0;
-    monthRestructured.ctr = 0 // TODO - diasCount ? +(monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
-    monthRestructured.ticketMedio = 0 // TODO - diasCount ? +(monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
+    console.log("________________________ 1")
+    console.log(diasCount)
+    console.log("________________________ 2")
+    console.log(monthRestructured.conversaoSoma)
+    console.log(monthRestructured.conversaoSoma / diasCount)
+    console.log((monthRestructured.conversaoSoma / diasCount).toFixed(2))
+    console.log("________________________ 3")
+    console.log(monthRestructured.ctrSoma)
+    console.log("________________________ 4")
+    console.log(monthRestructured.ticketSoma)
+    console.log("________________________ 5")
+
+    monthRestructured.conversao = 0 // TODO - diasCount ? (monthRestructured.conversaoSoma / diasCount).toFixed(2) : 0;
+    monthRestructured.ctr = 0 // TODO - diasCount ? (monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
+    monthRestructured.ticketMedio = 0 // TODO - diasCount ? (monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
 
     month = monthRestructured
   }
