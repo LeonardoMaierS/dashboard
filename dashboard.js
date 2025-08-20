@@ -1054,9 +1054,6 @@ function addSelectedMonth(monthKey, monthName, monthYear, uniqueId) {
 }
 
 function addSelectedMonthBlock(monthKey) {
-  console.log('adddddddddddddddddd 11')
-  console.log(monthKey)
-  console.log('adddddddddddddddddd 12')
   const dataMonths = getMonthData();
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
@@ -1111,16 +1108,8 @@ function addSelectedMonthBlock(monthKey) {
     monthRestructured.ctr = 0 // TODO - diasCount ? +(monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
     monthRestructured.ticketMedio = 0 // TODO - diasCount ? +(monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
 
-    // month = monthRestructured
-    console.log("monthRestructured 1")
-    console.log(monthRestructured)
-    console.log("monthRestructured 2")
     month = monthRestructured
   }
-
-  console.log("MONTHHHHHHHHHHHHHHHHHHHHHHHHH 1")
-  console.log(month)
-  console.log("MONTHHHHHHHHHHHHHHHHHHHHHHHHH 2")
 
   // Caso ja renderizado deve alterar somente os valores
   if (monthsBlocksRendered.includes(monthKey)) {
@@ -1182,8 +1171,6 @@ function addSelectedMonthBlock(monthKey) {
     }
   });
 
-  console.log('addSSSSSSSSSSSSSSSSSS 5')
-
   // Também permite expandir/recolher clicando na header do bloco (exceto botão)
   block.querySelector('.selected-month-block-header').addEventListener('click', (e) => {
     if (e.target !== toggleBtn) {
@@ -1214,30 +1201,20 @@ function addSelectedMonthBlock(monthKey) {
     }
   });
 
-  console.log('addSSSSSSSSSSSSSSSSSS 6')
-
   if (firstInclusion) {
-    console.log('addSSSSSSSSSSSSSSSSSS 7')
     container.appendChild(block);
   }
 
-  console.log('addSSSSSSSSSSSSSSSSSS 8')
   monthBlocks.set(monthKey, block);
-
-  console.log('addSSSSSSSSSSSSSSSSSS 9')
 
   const advancedToggleBtn = block.querySelector('.advanced-toggle');
   const advancedChartsContent = block.querySelector('.advanced-charts-content');
   let advancedChartsRendered = false;
 
-  console.log('addSSSSSSSSSSSSSSSSSS 10')
-
   if (firstInclusion) {
-    console.log('addSSSSSSSSSSSSSSSSSS 11')
     listenMonthRange(month, monthKey)
   }
 
-  console.log('addSSSSSSSSSSSSSSSSSS 12')
   // Alterna a área de indicadores avançados. Ao abrir pela primeira vez,
   // os gráficos são renderizados utilizando os dados do mês.
   advancedToggleBtn.addEventListener('click', (e) => {
@@ -1348,8 +1325,6 @@ function addSelectedMonthBlock(monthKey) {
       }
     }
   });
-
-  console.log('addSSSSSSSSSSSSSSSSSS 13')
 }
 
 function renderMonthBlockCharts(monthKey, uniqueId) {
@@ -1718,8 +1693,6 @@ function listenMonthRange(month, monthKey) {
 
   if (!(start && end)) return;
 
-  console.log("ALTEROU!!!!!!!!!!!!!!!!!!!!!!!!!")
-
   function onChange() {
     const startDate = start.value;
     const endDate = end.value;
@@ -1729,8 +1702,15 @@ function listenMonthRange(month, monthKey) {
     }
   }
 
-  start.addEventListener("change", onChange);
-  end.addEventListener("change", onChange);
+  if (start) {
+    start.addEventListener("change", onChange);
+    start.addEventListener("input", onChange);
+  }
+
+  if (end) {
+    end.addEventListener("change", onChange);
+    end.addEventListener("input", onChange);
+  }
 }
 
 document.getElementById('openExportModal').addEventListener('click', () => {
