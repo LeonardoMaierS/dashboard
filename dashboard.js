@@ -1062,13 +1062,8 @@ function addSelectedMonthBlock(monthKey) {
   let month = dataMonths[monthKey];
   let block;
 
-  // TODO - quando alterar a data deve filtrar aqui de acordo com a data definida
   const start = document.getElementById(`rangeStart-${month.name}`)?.value;
   const end = document.getElementById(`rangeEnd-${month.name}`)?.value;
-
-  console.log("test 1")
-  console.log(start, end)
-  console.log("test 2")
 
   if (start || end) {
     let monthRestructured = {
@@ -1113,34 +1108,18 @@ function addSelectedMonthBlock(monthKey) {
 
   // Caso ja renderizado deve alterar somente os valores
   if (monthsBlocksRendered.includes(monthKey)) {
-    console.log("JA INCLUSO, DEVE ATUALIZAR O BLOCK!")
-
     block = monthBlocks.get(monthKey);
   } else {
-    console.log("NOVO, INCLUINDO NOVO BLOCK!")
-
     block = addSelectedMonth(monthKey, month.name, month.year, uniqueId)
 
     firstInclusion = true
     monthsBlocksRendered.push(monthKey);
   }
 
-  console.log("BLOCK 222")
-  console.log(block)
-  console.log("BLOCK 223")
-
-  console.log('addSSSSSSSSSSSSSSSSSS 2')
-
-  // TODO - se nao fizer falta -> if (!month) return;
-
   const container = document.getElementById('selected-months-blocks');
-
-  console.log('addSSSSSSSSSSSSSSSSSS 3')
 
   const toggleBtn = block.querySelector('.selected-month-toggle');
   // Alterna a expansão do bloco e renderiza os gráficos diários quando expandido
-
-  console.log('addSSSSSSSSSSSSSSSSSS 4')
 
   toggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -1699,6 +1678,12 @@ function listenMonthRange(month, monthKey) {
 
     if (startDate && endDate && startDate <= endDate) {
       addSelectedMonthBlock(monthKey)
+
+      const block = monthBlocks.get(monthKey);
+
+      if (!block) return;
+
+      block.classList.remove('expanded');
     }
   }
 
