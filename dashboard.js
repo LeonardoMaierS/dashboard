@@ -1053,103 +1053,14 @@ function addSelectedMonth(monthKey, monthName, monthYear, uniqueId) {
   return block;
 }
 
-function updateSelectedMonthBlock(monthKey, view) {
-  const block = monthBlocks.get(monthKey)
-    || document.querySelector(`.month-block[data-month-key="${monthKey}"]`);
-  if (!block) return;
-
-  block.querySelector('[data-role="title"]').textContent = view.title || monthKey;
-  block.querySelector('[data-role="kpi-ok"]').textContent = view.kpis.searches_with_result;
-  block.querySelector('[data-role="kpi-nok"]').textContent = view.kpis.searches_without_result;
-  block.querySelector('[data-role="kpi-clicks"]').textContent = view.kpis.clicks;
-  block.querySelector('[data-role="kpi-ctr"]').textContent = `${(view.kpis.ctr_avg || 0).toFixed(2)}%`;
-
-  block.querySelector('[data-role="tables"]').innerHTML = view.tablesHTML || '';
-}
-
-function atualizarSelectedMonthBlock(monthKey, month) {
-  // bloco (Map -> DOM -> fallback)
-  const block =
-    (typeof monthBlocks !== 'undefined' && monthBlocks.get && monthBlocks.get(monthKey)) ||
-    document.querySelector(`.month-block[data-month-key="${monthKey}"]`) ||
-    document.querySelector(`.selected-month-block[data-month-key="${monthKey}"]`);
-
-  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 1")
-
-  if (!block) return;
-
-  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 2")
-  console.log(monthKey, month)
-  console.log("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 3")
-
-  // título (vários fallbacks)
-  const titleEl =
-    block.querySelector('[data-role="title"]') ||
-    block.querySelector('.selected-month-title') ||
-    block.querySelector('.selected-month-block-header h3');
-  if (titleEl) titleEl.textContent = `${month.name} ${month.year}`;
-
-  // KPIs (só define se existir no DOM)
-  const kpiOk = block.querySelector('[data-role="kpi-ok"]') || block.querySelector('.kpi-ok');
-  const kpiNok = block.querySelector('[data-role="kpi-nok"]') || block.querySelector('.kpi-nok');
-  const kpiClk = block.querySelector('[data-role="kpi-clicks"]') || block.querySelector('.kpi-clicks');
-  const kpiCtr = block.querySelector('[data-role="kpi-ctr"]') || block.querySelector('.kpi-ctr');
-
-  if (kpiOk) kpiOk.textContent = (month.buscasComResultado ?? 0).toLocaleString();
-  if (kpiNok) kpiNok.textContent = (month.buscasSemResultado ?? 0).toLocaleString();
-  if (kpiClk) kpiClk.textContent = (month.pedidos ?? 0).toLocaleString();
-  if (kpiCtr) kpiCtr.textContent = `${Number(month.ctr ?? 0).toFixed(1)}%`;
-
-  // uniqueId para gráficos/tabelas
-  let uniqueId = block.dataset.uniqueId;
-  if (!uniqueId) {
-    const platformSelectDiv = document.getElementById('platformCustomSelect');
-    const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase() || 'all';
-    uniqueId = `${monthKey}-${device}`;
-    block.dataset.uniqueId = uniqueId; // cache
-  }
-
-  // gráficos (só chama se as funções existem)
-  if (typeof renderPieProporcaoBuscas === 'function') renderPieProporcaoBuscas(uniqueId, month);
-  if (typeof renderLineEvolucaoBuscasComResultado === 'function') renderLineEvolucaoBuscasComResultado(uniqueId, month);
-  if (typeof renderLineEvolucaoBuscasSemResultado === 'function') renderLineEvolucaoBuscasSemResultado(uniqueId, month);
-  if (typeof renderLineEvolucaoSTR === 'function') renderLineEvolucaoSTR(uniqueId, month);
-  if (typeof renderLineEvolucaoCTR === 'function') renderLineEvolucaoCTR(uniqueId, month);
-
-  // tabela de proporção (fallbacks de destino)
-  const total = Object.values(month.historicoDiario || {}).reduce((acc, d) => {
-    acc.com += Number(d?.resumoDiario?.buscasComResultado || 0);
-    acc.sem += Number(d?.resumoDiario?.buscasSemResultado || 0);
-    return acc;
-  }, { com: 0, sem: 0 });
-
-  const rows = [
-    ['Com Resultado', total.com.toLocaleString(), (total.com + total.sem) ? ((total.com / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%'],
-    ['Sem Resultado', total.sem.toLocaleString(), (total.com + total.sem) ? ((total.sem / (total.com + total.sem)) * 100).toFixed(1) + '%' : '0%']
-  ];
-
-  const tableTarget =
-    document.getElementById(`table-pieProporcaoBuscas-${uniqueId}`) ||
-    block.querySelector('[data-role="table-proporcao"]');
-  if (tableTarget && typeof generateTableHTML === 'function') {
-    tableTarget.innerHTML = generateTableHTML(['Tipo', 'Buscas', 'Proporção'], rows);
-  }
-
-  return block
-}
-
-function addSelectedMonthBlock(monthKey, id) {
+function addSelectedMonthBlock(monthKey) {
   console.log('adddddddddddddddddd 11')
   console.log(monthKey)
   console.log('adddddddddddddddddd 12')
   const dataMonths = getMonthData();
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
-
-  // TODO - test random id
-  const idRandom = id ?? `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
-
-  const uniqueId = `${monthKey}-${device}-${idRandom}`;
+  const uniqueId = `${monthKey}-${device}`;
   let firstInclusion = false;
   let month = dataMonths[monthKey];
   let block;
@@ -1218,11 +1129,7 @@ function addSelectedMonthBlock(monthKey, id) {
     // TODO - test block = monthBlocks.get(monthKey)
     // block = addSelectedMonth(monthKey, month.name, month.year, uniqueId)
 
-    block = atualizarSelectedMonthBlock(monthKey, month)
-
-    console.log("BLOCK 111")
-    console.log(block)
-    console.log("BLOCK 112")
+    // block = atualizarSelectedMonthBlock(monthKey, month)
   } else {
     console.log("NOVO, INCLUINDO NOVO BLOCK!")
 
