@@ -1094,6 +1094,8 @@ function addSelectedMonthBlock(monthKey) {
         ctrSoma += month.historicoDiario[data].ctr
         ticketMedio += month.historicoDiario[data].ticketMedio
         conversaoSoma += month.historicoDiario[data].conversao
+
+        console.log(month.historicoDiario[data])
       }
     })
 
