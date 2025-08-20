@@ -1074,7 +1074,12 @@ function addSelectedMonthBlock(monthKey) {
   const dataMonths = getMonthData();
   const platformSelectDiv = document?.getElementById('platformCustomSelect');
   const device = platformSelectDiv?.querySelector('.custom-select-value')?.textContent?.trim()?.toLowerCase();
-  const uniqueId = `${monthKey}-${device}`;
+
+  // TODO - test random id
+  const idRandom = `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+
+
+  const uniqueId = `${monthKey}-${device}-${idRandom}`;
   let firstInclusion = false;
   let month = dataMonths[monthKey];
   let block;
