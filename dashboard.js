@@ -1091,11 +1091,9 @@ function addSelectedMonthBlock(monthKey) {
         monthRestructured.vendas += month.historicoDiario[data].resumoDiario.vendas
         monthRestructured.totalBuscas += month.historicoDiario[data].resumoDiario.buscasComResultado + month.historicoDiario[data].resumoDiario.buscasSemResultado
 
-        ctrSoma += month.historicoDiario[data].ctr
-        ticketMedio += month.historicoDiario[data].ticketMedio
-        conversaoSoma += month.historicoDiario[data].conversao
-
-        console.log(month.historicoDiario[data])
+        ctrSoma += month.historicoDiario[data].resumoDiario.ctr
+        ticketMedio += month.historicoDiario[data].resumoDiario.ticketMedio
+        conversaoSoma += month.historicoDiario[data].resumoDiario.conversao
       }
     })
 
@@ -1113,12 +1111,16 @@ function addSelectedMonthBlock(monthKey) {
     console.log(monthRestructured.ticketSoma)
     console.log("________________________ 5")
 
-    monthRestructured.conversao = 0 // TODO - diasCount ? (monthRestructured.conversaoSoma / diasCount).toFixed(2) : 0;
-    monthRestructured.ctr = 0 // TODO - diasCount ? (monthRestructured.ctrSoma / diasCount).toFixed(1) : 0;
-    monthRestructured.ticketMedio = 0 // TODO - diasCount ? (monthRestructured.ticketSoma / diasCount).toFixed(2) : 0;
+    monthRestructured.conversao = (monthRestructured.conversaoSoma / diasCount).toFixed(2) ?? 0;
+    monthRestructured.ctr = (monthRestructured.ctrSoma / diasCount).toFixed(1) ?? 0;
+    monthRestructured.ticketMedio = (monthRestructured.ticketSoma / diasCount).toFixed(2) ?? 0;
 
     month = monthRestructured
   }
+
+  console.log("====================================== 1")
+  console.log(month)
+  console.log("====================================== 2")
 
   // Caso ja renderizado deve alterar somente os valores
   if (monthsBlocksRendered.includes(monthKey)) {
