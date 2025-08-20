@@ -1134,6 +1134,8 @@ function atualizarSelectedMonthBlock(monthKey, month) {
   if (tableTarget && typeof generateTableHTML === 'function') {
     tableTarget.innerHTML = generateTableHTML(['Tipo', 'Buscas', 'Proporção'], rows);
   }
+
+  return block
 }
 
 function addSelectedMonthBlock(monthKey, id) {
@@ -1216,7 +1218,7 @@ function addSelectedMonthBlock(monthKey, id) {
     // TODO - test block = monthBlocks.get(monthKey)
     // block = addSelectedMonth(monthKey, month.name, month.year, uniqueId)
 
-    atualizarSelectedMonthBlock(monthKey, month)
+    block = atualizarSelectedMonthBlock(monthKey, month)
 
     console.log("BLOCK 111")
     console.log(block)
